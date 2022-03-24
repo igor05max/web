@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+
+{% if current_user.is_authenticated %}
+<form method="post" enctype="multipart/form-data">
+    <h4 style="position:absolute;left:732px;top:378px;width:200px;height:30px;z-index:5;"> Ник: </h4>
+    <input type="text" align="center" id="Editbox1" style="position:absolute;left:662px;top:448px;width:200px;height:30px;z-index:5;" name="Editbox1" placeholder={{ current_user.name }}>
+    {% if name_image == None %}
+
+        <div id="wb_Image1" style="position:absolute;left:658px;top:122px;width:104px;height:86px;z-index:2;">
+            <img src="static/img/None_prof.png" id="Image1" alt="" width="200" height="200"></div>
+    {% else %}
+        <div id="wb_Image2" style="position:absolute;left:658px;top:122px;width:104px;height:86px;z-index:2;">
+            <img src={{name_image}} id="Image2" alt="" width="200" height="200"></div>
+    {% endif %}
+
+
+<!--               <div class="form-group" style="position:absolute;left:658px;width:474px;top:332px;">-->
+<!--                    <input type="file" class="form-control-file" id="photo" name="file">-->
+<!--                </div>-->
+<!--                <button type="submit" style="position:absolute;left:670px;top:378px;z-index:5;" class="btn btn-primary">Примерить фотографию</button>-->
+<!--    -->
+
+    {% if about != "" %}
+        <h4 style="position:absolute;left:732px;top:478px;width:200px;height:30px;z-index:5;"> О себе: </h4>
+        <div class="form-group">
+            <textarea class="form-control" id="about" rows="4" cols="8" name="about" style="position:absolute;left:658px;top:522px;height:100px;width:200px;">{{about}}</textarea>
+        </div>
+
+        <a href="/to_change_profile" class="btn btn-warning" style="position:absolute;left:707px;top:642px;z-index:2;">
+            Редактировать
+        </a>
+    {% else %}
+        <a href="/to_change_profile" class="btn btn-warning" style="position:absolute;left:707px;top:478px;z-index:5;">
+            Редактировать
+        </a>
+    {% endif %}
+
+</form>
+{% endif %}
+
+
+{% endblock %}

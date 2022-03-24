@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% if current_user.is_authenticated %}
+    <a class="navbar-brand" href="/profile" style="position:absolute;left:1109px;top:97px;width:179px;height:46px;line-height:17px;z-index:1;">{{ current_user.name }}</a>
+    {% if current_user.name_image == None %}
+        <div id="wb_Image1" style="position:absolute;left:1108px;top:12px;width:104px;height:86px;z-index:2;">
+            <img src="static/img/None_prof.png" id="Image1" alt="" width="73" height="73"></div>
+    {% else %}
+        <div id="wb_Image2" style="position:absolute;left:878px;top:12px;width:104px;height:86px;z-index:2;">
+            <img src="static/img/{[current_user.name_image]}.png" id="Image2" alt="" width="73" height="73"></div>
+
+    {% endif %}
+{% else %}
+    <p>
+        <a class="btn btn-primary " href="/register">Зарегистрироваться</a>
+        <a class="btn btn-success" href="/login">Войти</a>
+    </p>
+
+{% endif %}
+
+<h1>Главная страница</h1>
+
+{% endblock %}
