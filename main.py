@@ -7,15 +7,19 @@ from flask_login import LoginManager, login_user, logout_user, login_required, c
 from forms.registration import RegistrationForm
 from forms.entrance import EntranceForm
 from forms.to_change_profile import To_changeForm
+import os
+from flask import Flask, flash, request, redirect, url_for
+from werkzeug.utils import secure_filename
 
 from key import KEY
+
 
 app = Flask(__name__)
 login_manager = LoginManager()
 login_manager.init_app(app)
-app.config['SECRET_KEY'] = KEY
 
-photo_user = None
+
+app.config['SECRET_KEY'] = KEY
 
 
 def main():
@@ -81,54 +85,37 @@ def profile():
 @app.route('/to_change_profile', methods=['GET', 'POST'])
 def to_change_profile():
     form = To_changeForm()
-    db_sess = db_session.create_session()
-    user_ = db_sess.query(User).filter(User.id == current_user.id).first()
-    photo_user = user_.name_image
     if request.method == "GET":
-        if user_:
-            form.name.data = user_.name
-            form.email.data = user_.email
-            form.about.data = user_.about
+        if current_user:
+            form.name.data = current_user.name
+            form.email.data = current_user.email
+            form.about.data = current_user.about
     if form.validate_on_submit():
         db_sess = db_session.create_session()
-        email_ = db_sess.query(User).filter(User.email == form.email.data).first().email
+        user = db_sess.query(User).filter(User.email == form.email.data).first()
 
-        if email_ and email_ != user_.email:
+        if user.email and user.email != current_user.email:
             return render_template('to_change_profile.html', title='',
                                    form=form,
                                    message="Такой пользователь уже есть")
-        if user_:
-            user_.name = form.name.data
-            user_.email = form.email.data
-            user_.about = form.about.data
-            print(photo_user)
-            user_.name_image = photo_user
+        user = db_sess.query(User).filter(User.id == current_user.id).first()
+        if user:
+            user.name = form.name.data
+            user.email = form.email.data
+            user.about = form.about.data
+            f = request.files['file']
+            data = f.read()
+            if str(data) == "b''":
+                pass
+            else:
+                map_file = f"static/img/profile{current_user.id}.jpg"
+                with open(map_file, "wb") as file:
+                    file.write(data)
+                user.name_image = f"img/profile{current_user.id}.jpg"
+
             db_sess.commit()
         return redirect('/')
     return render_template('to_change_profile.html', form=form, title="")
-
-
-@app.route('/profile_photo/<int:id>', methods=['GET', 'POST'])
-def profile_photo(id):
-    db_sess = db_session.create_session()
-    user_ = db_sess.query(User).filter(User.id == id).first()
-    if request.method == 'GET':
-        return render_template('profile_photo.html', name_image=user_.name_image)
-    elif request.method == 'POST':
-        f = request.files['file']
-        data = f.read()
-        if str(data) == "b''":
-            map_file = None
-        else:
-            map_file = f"static/img/profile{user_.id}.jpg"
-            with open(map_file, "wb") as file:
-                file.write(data)
-        global photo_user
-        if map_file is not None:
-            photo_user = map_file[7::]
-        else:
-            photo_user = None
-        return render_template('profile_photo.html', name_image=photo_user)
 
 
 @login_manager.user_loader
