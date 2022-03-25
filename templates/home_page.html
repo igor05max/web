@@ -8,8 +8,8 @@
         <div id="wb_Image1" style="position:absolute;left:1108px;top:12px;width:104px;height:86px;z-index:2;">
             <img src="static/img/None_prof.png" id="Image1" alt="" width="73" height="73"></div>
     {% else %}
-        <div id="wb_Image2" style="position:absolute;left:878px;top:12px;width:104px;height:86px;z-index:2;">
-            <img src="static/img/{[current_user.name_image]}.png" id="Image2" alt="" width="73" height="73"></div>
+        <div id="wb_Image2" style="position:absolute;left:1108px;top:12px;width:104px;height:86px;z-index:2;">
+            <img src="{{ url_for('static', filename=current_user.name_image) }}" id="Image2" alt="" width="73" height="73"></div></div>
 
     {% endif %}
 {% else %}
@@ -23,3 +23,4 @@
 <h1>Главная страница</h1>
 
 {% endblock %}
+
