@@ -2,9 +2,9 @@
 
 {% block content %}
 
-
-<form action="" method="post" novalidate>
+<form action="" method="post" enctype="multipart/form-data" novalidate>
     {{ form.hidden_tag() }}
+    <input type="file" class="form-control-file" id="photo" name="file">
     <p>
         {{ form.name.label }}<br>
         {{ form.name(class="form-control") }}<br>
@@ -34,17 +34,8 @@
     {% endfor %}
     </p>
 <div align="center"><p>{{ form.submit(type="submit", class="btn btn-primary") }}</p></div>
-    <a href="/profile_photo/{{ current_user.id }}" class="btn btn-warning">
-            Изменить фото
-</a>
+
 </form>
 
-
-
-
-<!--<div class="form-group" style="position:absolute;left:658px;width:474px;top:332px;">-->
-<!--        <input type="file" class="form-control-file" id="photo" name="file">-->
-<!--</div>-->
-<!--    <button type="submit" style="position:absolute;left:670px;top:378px;z-index:5;" class="btn btn-primary">Примерить фотографию</button>-->
-
 {% endblock %}
+
