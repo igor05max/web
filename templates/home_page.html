@@ -9,7 +9,7 @@
             <img src="static/img/None_prof.png" id="Image1" alt="" width="73" height="73"></div>
     {% else %}
         <div id="wb_Image2" style="position:absolute;left:1108px;top:12px;width:104px;height:86px;z-index:2;">
-            <img src="{{ url_for('static', filename=current_user.name_image) }}" id="Image2" alt="" width="73" height="73"></div></div>
+            <img src="{{ url_for('static', filename=current_user.name_image) }}" id="Image2" alt="" width="73" height="73"></div>
 
     {% endif %}
 {% else %}
@@ -20,7 +20,16 @@
 
 {% endif %}
 
-<h1>Главная страница</h1>
+<input style="position:absolute;left:332px;top:178px;width:600px;height:40px;z-index:5;">
+<p>
+    <a class="btn btn-success" style="position:absolute;left:960px;top:178px;height:40px;" href="/search">Поиск</a>
+</p>
+{% if current_user.is_authenticated %}
+    <p>
+         <a class="btn btn-success" style="position:absolute;left:620px;top:258px;height:40px;" href="/add_location">Добавить</a>
+    </p>
+{% endif %}
+
+
 
 {% endblock %}
-
