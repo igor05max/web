@@ -118,6 +118,17 @@ def to_change_profile():
     return render_template('to_change_profile.html', form=form, title="")
 
 
+@app.route('/search')
+def search():
+    pass
+
+
+@app.route('/add_location')
+@login_required
+def add_location():
+    pass
+
+
 @login_manager.user_loader
 def load_user(user_id):
     db_sess = db_session.create_session()
