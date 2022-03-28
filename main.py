@@ -124,5 +124,12 @@ def load_user(user_id):
     return db_sess.query(User).get(user_id)
 
 
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect("/")
+
+
 if __name__ == '__main__':
     main()
