@@ -18,6 +18,8 @@ app = Flask(__name__)
 login_manager = LoginManager()
 login_manager.init_app(app)
 
+UPLOAD_FOLDER = 'static/img'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 app.config['SECRET_KEY'] = KEY
 
@@ -123,10 +125,16 @@ def search():
     pass
 
 
-@app.route('/add_location')
+@app.route('/add_location', methods=['GET', 'POST'])
 @login_required
 def add_location():
-    pass
+    if request.method == "GET":
+        return render_template('add_location.html')
+    if request.method == "POST":
+        files = request.files.getlist("file")
+        for file in files:
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
+        return redirect('/')
 
 
 @login_manager.user_loader
