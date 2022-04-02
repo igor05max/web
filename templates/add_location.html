@@ -1,9 +1,39 @@
 {% extends "base.html" %}
 
 {% block content %}
-<form method="POST" enctype="multipart/form-data" action="/upload">
-    <input type="file" name="file[]" multiple="">
-    <button type="submit" class="btn btn-primary">Записаться</button>
+<form action="" method="post">
+        {{ form.hidden_tag() }}
+        <p>
+            {{ form.file.label }}<br>
+            {{ form.file(class="form-control") }}<br>
+            {% for error in form.file.errors %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.name_location.label }}<br>
+            {{ form.name_location(class="form-control") }}<br>
+            {% for error in form.name_location.errors %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
+            {% endfor %}
+        </p>
+
+        <p>
+            {{ form.about.label }}<br>
+            {{ form.about(class="form-control") }}<br>
+            {% for error in form.about.errors %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
+            {% endfor %}
+        </p>
+
+        <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>
+        <div>{{ message }}</div>
 </form>
 
 {% endblock %}
