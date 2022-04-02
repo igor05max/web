@@ -9,8 +9,8 @@ from forms.entrance import EntranceForm
 from forms.to_change_profile import To_changeForm
 import os
 from flask import Flask, flash, request, redirect, url_for
+from forms.location import LocationForm
 from werkzeug.utils import secure_filename
-
 from key import KEY
 
 
@@ -128,13 +128,12 @@ def search():
 @app.route('/add_location', methods=['GET', 'POST'])
 @login_required
 def add_location():
-    if request.method == "GET":
-        return render_template('add_location.html')
-    if request.method == "POST":
-        files = request.files.getlist("file")
-        for file in files:
+    form = LocationForm()
+    if form.validate_on_submit():
+        for file in form.file.data:
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
-        return redirect('/')
+            return redirect('/')
+    return render_template('add_location.html', form=form)
 
 
 @login_manager.user_loader
