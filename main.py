@@ -28,6 +28,23 @@ app.config['SECRET_KEY'] = KEY
 
 def main():
     db_session.global_init("db/blogs.db")
+    # location = Location()
+    # location.name = "Чудо"
+    # location.city_id = 1
+    # location.comments = ""
+    # location.img = ""
+    # location.category = ""
+    #
+    # db_sess = db_session.create_session()
+    # db_sess.add(location)
+    # db_sess.commit()
+
+    # city = City()
+    # city.name = "Абаза	Республика Хакасия	19"
+    # city.attractions = "1"
+    # db_sess = db_session.create_session()
+    # db_sess.add(city)
+    # db_sess.commit()
     app.run()
 
 
