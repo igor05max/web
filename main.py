@@ -12,6 +12,8 @@ from flask import Flask, flash, request, redirect, url_for
 from forms.location import LocationForm
 from werkzeug.utils import secure_filename
 from key import KEY
+from data.city import City
+from data.location import Location
 
 
 app = Flask(__name__)
@@ -75,7 +77,8 @@ def registration():
 
 @app.route('/', methods=['GET', 'POST'])
 def home_page():
-    return render_template('home_page.html')
+    data_locations = db_session.create_session().query(Location).all()
+    return render_template('home_page.html', data_locations=data_locations)
 
 
 @app.route('/profile', methods=['GET', 'POST'])
