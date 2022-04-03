@@ -2,6 +2,7 @@ import datetime
 import sqlalchemy
 from .db_session import SqlAlchemyBase
 from flask_login import UserMixin
+from sqlalchemy import orm
 
 
 class Location(SqlAlchemyBase, UserMixin):
@@ -18,3 +19,6 @@ class Location(SqlAlchemyBase, UserMixin):
     # дата внесения в базу данных
     modified_date = sqlalchemy.Column(sqlalchemy.DateTime,
                                       default=datetime.datetime.now)
+    city_id = sqlalchemy.Column(sqlalchemy.Integer,
+                                    sqlalchemy.ForeignKey("cities.id"))
+    city = orm.relation('City')
