@@ -14,6 +14,8 @@ from werkzeug.utils import secure_filename
 from key import KEY
 from data.city import City
 from data.location import Location
+import time
+from data.image import Image
 
 
 app = Flask(__name__)
@@ -150,9 +152,19 @@ def search():
 def add_location():
     form = LocationForm()
     if form.validate_on_submit():
+        number = 0
         for file in form.file.data:
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
-            return redirect('/')
+            number += 1
+            name_file = f'{time.strftime("%Y-%m-%d-%H.%M.%S", time.localtime())}0{current_user.id}_{number}.png'
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], name_file))
+            image = Image()
+            image.image = name_file
+            image.creator = current_user.id
+            db_sess = db_session.create_session()
+            db_sess.add(image)
+            db_sess.commit()
+
+        return redirect('/')
     return render_template('add_location.html', form=form)
 
 
