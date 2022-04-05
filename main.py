@@ -158,17 +158,19 @@ def add_location():
         number = 0
         mass = []
         db_sess = db_session.create_session()
-        for file in form.file.data:
-            number += 1
-            name_file = f'{time.strftime("%Y-%m-%d-%H.%M.%S", time.localtime())}0{current_user.id}_{number}.png'
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], name_file))
-            image = Image()
-            image.image = name_file
-            image.creator = current_user.id
-            db_sess = db_session.create_session()
-            db_sess.add(image)
-            db_sess.commit()
-            mass.append(str(db_sess.query(Image).filter(Image.image == name_file).first().id))
+        true = form.file.data[0].filename
+        if true:
+            for file in form.file.data:
+                number += 1
+                name_file = f'{time.strftime("%Y-%m-%d-%H.%M.%S", time.localtime())}0{current_user.id}_{number}.png'
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], name_file))
+                image = Image()
+                image.image = name_file
+                image.creator = current_user.id
+                db_sess = db_session.create_session()
+                db_sess.add(image)
+                db_sess.commit()
+                mass.append(str(db_sess.query(Image).filter(Image.image == name_file).first().id))
         city = db_sess.query(City).filter(City.name == form.city.data).first()
         if not city:
             city = City()
