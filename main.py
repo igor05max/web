@@ -151,11 +151,13 @@ def search():
 @login_required
 def add_location():
     form = LocationForm()
-    f = open("f.txt", encoding="utf8")
+    f = open("all_cities.txt", encoding="utf8")
     data_city = [i.replace("\t", " ").replace("\n", "") for i in f]
     f.close()
     if form.validate_on_submit():
         number = 0
+        mass = []
+        db_sess = db_session.create_session()
         for file in form.file.data:
             number += 1
             name_file = f'{time.strftime("%Y-%m-%d-%H.%M.%S", time.localtime())}0{current_user.id}_{number}.png'
@@ -166,6 +168,22 @@ def add_location():
             db_sess = db_session.create_session()
             db_sess.add(image)
             db_sess.commit()
+            mass.append(str(db_sess.query(Image).filter(Image.image == name_file).first().id))
+        city = db_sess.query(City).filter(City.name == form.city.data).first()
+        if not city:
+            city = City()
+            city.name = form.city.data
+            city.attractions = ""
+            db_sess = db_session.create_session()
+            db_sess.add(city)
+            db_sess.commit()
+            city = db_sess.query(City).filter(City.name == form.city.data).first()
+        location = Location()
+        location.name = form.name_location.data
+        location.img = ", ".join(mass)
+        location.city_id = city.id
+        db_sess.add(location)
+        db_sess.commit()
 
         return redirect('/')
     return render_template('add_location.html', form=form, entries=data_city)
