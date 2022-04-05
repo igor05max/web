@@ -151,6 +151,9 @@ def search():
 @login_required
 def add_location():
     form = LocationForm()
+    f = open("f.txt", encoding="utf8")
+    data_city = [i.replace("\t", " ").replace("\n", "") for i in f]
+    f.close()
     if form.validate_on_submit():
         number = 0
         for file in form.file.data:
@@ -165,7 +168,7 @@ def add_location():
             db_sess.commit()
 
         return redirect('/')
-    return render_template('add_location.html', form=form)
+    return render_template('add_location.html', form=form, entries=data_city)
 
 
 @login_manager.user_loader
