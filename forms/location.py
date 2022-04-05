@@ -7,5 +7,6 @@ from wtforms.validators import DataRequired
 class LocationForm(FlaskForm):
     file = MultipleFileField("")
     name_location = StringField('Название места', validators=[DataRequired()])
+    city = StringField('autocomplete_input', validators=[DataRequired()])
     about = TextAreaField("О месте")
     submit = SubmitField('Создать')
