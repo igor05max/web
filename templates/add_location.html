@@ -21,7 +21,16 @@
                 </div>
             {% endfor %}
         </p>
+    <h8>Название города</h8>
+    {{form.city(list="id_datalist")}}
+<datalist id="id_datalist" >
+{% for entry in entries %}
+<option value={{ entry }} itemscope="itemscope">
 
+{% endfor %}
+</datalist>
+    <br>
+    <br>
         <p>
             {{ form.about.label }}<br>
             {{ form.about(class="form-control") }}<br>
@@ -31,13 +40,7 @@
                 </div>
             {% endfor %}
         </p>
-    {{form.city(list="id_datalist")}}
-<datalist id="id_datalist">
-{% for entry in entries %}
-<option value={{ entry }} itemscope="itemscope">
-    <h1> {{ entry }} </h1>
-{% endfor %}
-</datalist>
+
         <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>
         <div>{{ message }}</div>
 
