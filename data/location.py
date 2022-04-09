@@ -19,6 +19,7 @@ class Location(SqlAlchemyBase, UserMixin):
     # дата внесения в базу данных
     modified_date = sqlalchemy.Column(sqlalchemy.DateTime,
                                       default=datetime.datetime.now)
+    about = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     city_id = sqlalchemy.Column(sqlalchemy.Integer,
                                     sqlalchemy.ForeignKey("cities.id"))
     city = orm.relation('City')
