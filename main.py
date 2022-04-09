@@ -149,13 +149,11 @@ def location_id(id_):
     location_list = []
     if location:
         location_ = location.img.split(', ')
-        print(location_)
         for el in location_:
-            image_ = db_sess.query(Image).filter(Image.id == int(el)).first()
-            print(image_)
-            if image_:
-                location_list.append("img/" + image_.image)
-        print(location_list)
+            if el != "":
+                image_ = db_sess.query(Image).filter(Image.id == int(el)).first()
+                if image_:
+                    location_list.append("img/" + image_.image)
         return render_template('location.html', location_list=location_list)
     return render_template('location.html', location_list=location_list)
 
