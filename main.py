@@ -142,9 +142,22 @@ def to_change_profile():
     return render_template('to_change_profile.html', form=form, title="")
 
 
-@app.route('/search')
-def search():
-    pass
+@app.route('/location/<int:id_>', methods=['GET', 'POST'])
+def location_id(id_):
+    db_sess = db_session.create_session()
+    location = db_sess.query(Location).filter(Location.id == id_).first()
+    location_list = []
+    if location:
+        location_ = location.img.split(', ')
+        print(location_)
+        for el in location_:
+            image_ = db_sess.query(Image).filter(Image.id == int(el)).first()
+            print(image_)
+            if image_:
+                location_list.append("img/" + image_.image)
+        print(location_list)
+        return render_template('location.html', location_list=location_list)
+    return render_template('location.html', location_list=location_list)
 
 
 @app.route('/add_location', methods=['GET', 'POST'])
@@ -184,6 +197,7 @@ def add_location():
         location.name = form.name_location.data
         location.img = ", ".join(mass)
         location.city_id = city.id
+        location.about = form.about.data
         db_sess.add(location)
         db_sess.commit()
 
