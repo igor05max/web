@@ -16,6 +16,7 @@ from data.city import City
 from data.location import Location
 import time
 from data.image import Image
+from data.comment import Comment
 
 
 app = Flask(__name__)
@@ -144,18 +145,20 @@ def to_change_profile():
 
 @app.route('/location/<int:id_>', methods=['GET', 'POST'])
 def location_id(id_):
-    db_sess = db_session.create_session()
-    location = db_sess.query(Location).filter(Location.id == id_).first()
-    location_list = []
-    if location:
-        location_ = location.img.split(', ')
-        for el in location_:
-            if el != "":
-                image_ = db_sess.query(Image).filter(Image.id == int(el)).first()
-                if image_:
-                    location_list.append("img/" + image_.image)
-        return render_template('location.html', location_list=location_list)
-    return render_template('location.html', location_list=location_list)
+    if request.method == 'GET':
+        db_sess = db_session.create_session()
+        location = db_sess.query(Location).filter(Location.id == id_).first()
+        location_list = []
+        if location:
+            location_ = location.img.split(', ')
+            for el in location_:
+                if el != "":
+                    image_ = db_sess.query(Image).filter(Image.id == int(el)).first()
+                    if image_:
+                        location_list.append("img/" + image_.image)
+            return render_template('location.html', location_list=location_list, name=location.name, location=location)
+    elif request.method == 'POST':
+        print(1)
 
 
 @app.route('/add_location', methods=['GET', 'POST'])
