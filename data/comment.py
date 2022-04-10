@@ -18,3 +18,7 @@ class Comment(SqlAlchemyBase, UserMixin):
     creator = sqlalchemy.Column(sqlalchemy.Integer,
                                 sqlalchemy.ForeignKey("users.id"))
     user = orm.relation('User')
+
+    location_id = sqlalchemy.Column(sqlalchemy.Integer,
+                                sqlalchemy.ForeignKey("locations.id"))
+    location = orm.relation('Location')
