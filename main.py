@@ -103,9 +103,11 @@ def home_page():
 
 
 @app.route('/profile', methods=['GET', 'POST'])
+@login_required
 def profile():
     if request.method == 'GET':
-        return render_template('profile.html', name_image=current_user.name_image, about=current_user.about)
+        return render_template('profile.html', name_image=current_user.name_image, about=current_user.about,
+                               name=current_user.name, true=1)
 
 
 @app.route('/to_change_profile', methods=['GET', 'POST'])
@@ -228,6 +230,16 @@ def add_location():
 
         return redirect('/')
     return render_template('add_location.html', form=form, entries=data_city)
+
+
+@app.route('/profile/<int:id_>', methods=['GET', 'POST'])
+def profile_id(id_):
+    if request.method == 'GET':
+        db_sess = db_session.create_session()
+        user = db_sess.query(User).filter(User.id == id_).first()
+        print(user.name_image)
+        return render_template('profile.html', name_image=user.name_image, about=user.about,
+                               name=user.name, true=0)
 
 
 @login_manager.user_loader
