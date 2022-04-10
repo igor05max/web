@@ -87,6 +87,7 @@ def registration():
         user.email = form.email.data
         user.set_password(form.password.data)
         user.about = form.about.data
+        user.name_image = "img/None_prof.png"
         db_sess.add(user)
         db_sess.commit()
         login_user(user)
@@ -131,7 +132,7 @@ def to_change_profile():
             f = request.files['file']
             data = f.read()
             if str(data) == "b''":
-                pass
+                user.name_image = "img/None_prof.png"
             else:
                 map_file = f"static/img/profile{current_user.id}.jpg"
                 with open(map_file, "wb") as file:
@@ -150,15 +151,38 @@ def location_id(id_):
         location = db_sess.query(Location).filter(Location.id == id_).first()
         location_list = []
         if location:
+            comment_list = [i for i in db_sess.query(Comment).filter(Comment.location_id == id_)][::-1]
             location_ = location.img.split(', ')
             for el in location_:
                 if el != "":
                     image_ = db_sess.query(Image).filter(Image.id == int(el)).first()
                     if image_:
                         location_list.append("img/" + image_.image)
-            return render_template('location.html', location_list=location_list, name=location.name, location=location)
+            return render_template('location.html', location_list=location_list, name=location.name, location=location,
+                                   comment_list=comment_list)
+
     elif request.method == 'POST':
-        print(1)
+        text = request.form['comment']
+        db_sess = db_session.create_session()
+        if not text == "":
+            comment = Comment()
+            comment.comment = text
+            comment.creator = current_user.id
+            comment.location_id = id_
+            db_sess.add(comment)
+            db_sess.commit()
+        location = db_sess.query(Location).filter(Location.id == id_).first()
+        location_list = []
+        if location:
+            location_ = location.img.split(', ')
+            comment_list = [i for i in db_sess.query(Comment).filter(Comment.location_id == id_)][::-1]
+            for el in location_:
+                if el != "":
+                    image_ = db_sess.query(Image).filter(Image.id == int(el)).first()
+                    if image_:
+                        location_list.append("img/" + image_.image)
+            return render_template('location.html', location_list=location_list, name=location.name, location=location,
+                                   comment_list=comment_list)
 
 
 @app.route('/add_location', methods=['GET', 'POST'])
