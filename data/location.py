@@ -14,8 +14,6 @@ class Location(SqlAlchemyBase, UserMixin):
     img = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     # категория (памятник, музей, парк и т.д)
     category = sqlalchemy.Column(sqlalchemy.String, nullable=True)
-    # список комментариев
-    comments = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     # дата внесения в базу данных
     modified_date = sqlalchemy.Column(sqlalchemy.DateTime,
                                       default=datetime.datetime.now)
