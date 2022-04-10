@@ -59,10 +59,10 @@
 </div>
 </div>
 {% if location.about != "" %}
-    <div class="form-group" align="center">
+<div class="form-group" align="center">
         <textarea class="form-control" id="about" rows="4" cols="8" disabled="disabled" name="about"
-                  >{{location.about}}</textarea>
-    </div>
+        >{{location.about}}</textarea>
+</div>
 {% endif %}
 <br>
 <br>
@@ -70,14 +70,42 @@
 <br>
 <hr id="Line1" style="top:273px;width:544px;z-index:5;">
 {% if current_user.is_authenticated %}
-    <div class="form-group">
+<div class="form-group">
+
+
+    <form method="post" enctype="multipart/form-data">
         <textarea class="form-control" id="about2" rows="4" cols="8" name="comment" placeholder="Комментарий..."
-                  ></textarea>
-    </div>
-<p>
-    <button type="submit" class="btn btn-primary">Отправить комментарий</button>
-</p>
+        ></textarea>
+        <button type="submit" class="btn btn-primary">Отправить комментарий</button>
+    </form>
+</div>
+
 {% endif %}
 
+{% for elem in comment_list %}
 
+<table style="text-align:width: 700px;" border="0"
+       cellpadding="2" cellspacing="2">
+
+    <tbody>
+    <tr>
+        <td style="vertical-align: top;width:200px"><img src="{{url_for('static', filename=elem.user.name_image)}}" width="50" height="50"
+        >
+            {{ elem.user.name }}
+            <br>
+            {{ elem.modified_date }}
+        </td>
+        <td style="vertical-align: top; width: 500px">    <div class="form-group" align="center">
+       <textarea class="form-control" rows="4" cols="8" disabled="disabled" name="about"
+                  >{{elem.comment}}</textarea>
+   </div><br>
+        </td>
+    </tr>
+    </tbody>
+
+</table>
+<br>
+<br>
+<hr style="top:273px;width:544px;z-index:5;">
+{% endfor %}
 {% endblock %}
