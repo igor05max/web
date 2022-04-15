@@ -13,7 +13,6 @@ def search(request_):
             answer += " " + elem['category']
         list_answers.append((answer, elem['id'], int(elem['count_visits'])))
     answers = sorted(process.extract(request_, list_answers, limit=None), key=lambda x: (-x[-1], -x[0][-1]))
-    print(answers)
     out = {}
     for elem in answers:
         out[elem[0][1]] = elem[0][0]
