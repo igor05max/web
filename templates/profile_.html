@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+
+<form method="post" enctype="multipart/form-data">
+    {% if current_user.is_authenticated %}
+    <a href="/logout" class="btn btn-danger" style="position:absolute;left:1102px;top:38px;z-index:5;">
+        Выйти
+    </a>
+    {% endif %}
+    <h4 style="position:absolute;left:732px;top:378px;width:200px;height:30px;z-index:5;"> Ник: </h4>
+    <input type="text" align="center" id="Editbox1" disabled="disabled"
+           style="position:absolute;left:662px;top:448px;width:200px;height:30px;z-index:5;" name="Editbox1"
+           placeholder={{ name }}>
+    {% if name_image == None %}
+
+    <div id="wb_Image1" style="position:absolute;left:658px;top:122px;width:104px;height:86px;z-index:2;">
+        <img src="static/img/None_prof.png" id="Image1" alt="" width="200" height="200"></div>
+    {% else %}
+    <div id="wb_Image2" style="position:absolute;left:658px;top:122px;width:104px;height:86px;z-index:2;">
+        <img src="{{ url_for('static', filename=name_image) }}" id="Image2" alt="" width="200" height="200"></div>
+    {% endif %}
+
+    {% if about != "" %}
+    <h4 style="position:absolute;left:732px;top:478px;width:200px;height:30px;z-index:5;"> О себе: </h4>
+    <div class="form-group">
+        <textarea class="form-control" id="about" rows="4" cols="8" disabled="disabled" name="about"
+                  style="position:absolute;left:658px;top:522px;height:100px;width:200px;">{{about}}</textarea>
+    </div>
+    {% endif %}
+
+
+</form>
+
+<p>
+    <a class="btn btn-primary" style="position:absolute;left:100px;top:28px;height:40px;" href="/">Главная страница</a>
+</p>
+
+{% endblock %}
