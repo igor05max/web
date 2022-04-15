@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+
+<h2 align="center">{{ name_city }}</h2>
+<br>
+{% for elem in data_locations %}
+<br>
+<h2 align="center"><a href="/location/{{elem.id}}">{{ elem.name }}</a></h2>
+
+{% endfor %}
+
+
+{% endblock %}
