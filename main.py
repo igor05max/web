@@ -17,6 +17,9 @@ from data.location import Location
 import time
 from data.image import Image
 from data.comment import Comment
+from data import location_api
+from data.similarity import search
+import json
 
 
 app = Flask(__name__)
@@ -31,23 +34,18 @@ app.config['SECRET_KEY'] = KEY
 
 def main():
     db_session.global_init("db/blogs.db")
-    # location = Location()
-    # location.name = "Чудо"
-    # location.city_id = 1
-    # location.comments = ""
-    # location.img = ""
-    # location.category = ""
-    #
-    # db_sess = db_session.create_session()
-    # db_sess.add(location)
-    # db_sess.commit()
-
-    # city = City()
-    # city.name = "Абаза	Республика Хакасия	19"
-    # city.attractions = "1"
-    # db_sess = db_session.create_session()
-    # db_sess.add(city)
-    # db_sess.commit()
+    db_sess = db_session.create_session()
+    app.register_blueprint(location_api.blueprint)
+    user_ = db_sess.query(User).filter(User.id == 1).first()
+    if user_ is None:
+        user = User()
+        user.name = "ADMINISTRATOR"
+        user.email = "maksimov.i289@yandex.ru"
+        user.about = "ADMINISTRATOR"
+        user.name_image = "img/None_prof.png"
+        user.set_password("111")
+        db_sess.add(user)
+        db_sess.commit()
     app.run()
 
 
@@ -98,8 +96,29 @@ def registration():
 
 @app.route('/', methods=['GET', 'POST'])
 def home_page():
-    data_locations = db_session.create_session().query(Location).all()
-    return render_template('home_page.html', data_locations=data_locations)
+    if request.method == "GET":
+        data_locations = db_session.create_session().query(Location).all()[::-1]
+        return render_template('home_page.html', data_locations=data_locations)
+    elif request.method == 'POST':
+        request_text = request.form['input_ww'].strip()
+        answer = search(request_text)
+        if answer:
+            return redirect('/search')
+
+
+@app.route('/search', methods=['GET', 'POST'])
+def search_():
+    if request.method == "GET":
+        with open('data_file.json', 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        data_locations = [db_session.create_session().query(Location).filter(Location.id == int(i)).first()
+                          for i in [int(elem) for elem in data]]
+        return render_template('home_page.html', data_locations=data_locations)
+    elif request.method == "POST":
+        request_text = request.form['input_ww'].strip()
+        answer = search(request_text)
+        if answer:
+            return redirect('/search')
 
 
 @app.route('/profile', methods=['GET', 'POST'])
@@ -107,7 +126,7 @@ def home_page():
 def profile():
     if request.method == 'GET':
         return render_template('profile.html', name_image=current_user.name_image, about=current_user.about,
-                               name=current_user.name, true=1)
+                               name=current_user.name)
 
 
 @app.route('/to_change_profile', methods=['GET', 'POST'])
@@ -151,6 +170,8 @@ def location_id(id_):
     if request.method == 'GET':
         db_sess = db_session.create_session()
         location = db_sess.query(Location).filter(Location.id == id_).first()
+        location.count_visits = str(int(location.count_visits) + 1)
+        db_sess.commit()
         location_list = []
         if location:
             comment_list = [i for i in db_sess.query(Comment).filter(Comment.location_id == id_)][::-1]
@@ -161,7 +182,7 @@ def location_id(id_):
                     if image_:
                         location_list.append("img/" + image_.image)
             return render_template('location.html', location_list=location_list, name=location.name, location=location,
-                                   comment_list=comment_list)
+                                   comment_list=comment_list, creator=location.user.name)
 
     elif request.method == 'POST':
         text = request.form['comment']
@@ -173,18 +194,7 @@ def location_id(id_):
             comment.location_id = id_
             db_sess.add(comment)
             db_sess.commit()
-        location = db_sess.query(Location).filter(Location.id == id_).first()
-        location_list = []
-        if location:
-            location_ = location.img.split(', ')
-            comment_list = [i for i in db_sess.query(Comment).filter(Comment.location_id == id_)][::-1]
-            for el in location_:
-                if el != "":
-                    image_ = db_sess.query(Image).filter(Image.id == int(el)).first()
-                    if image_:
-                        location_list.append("img/" + image_.image)
-            return render_template('location.html', location_list=location_list, name=location.name, location=location,
-                                   comment_list=comment_list)
+        return redirect(f'/location/{id_}')
 
 
 @app.route('/add_location', methods=['GET', 'POST'])
@@ -223,7 +233,9 @@ def add_location():
         location = Location()
         location.name = form.name_location.data
         location.img = ", ".join(mass)
+        location.count_visits = "1"
         location.city_id = city.id
+        location.creator = current_user.id
         location.about = form.about.data
         db_sess.add(location)
         db_sess.commit()
@@ -232,14 +244,30 @@ def add_location():
     return render_template('add_location.html', form=form, entries=data_city)
 
 
-@app.route('/profile/<int:id_>', methods=['GET', 'POST'])
+@app.route('/profile_/<int:id_>', methods=['GET', 'POST'])
 def profile_id(id_):
     if request.method == 'GET':
-        db_sess = db_session.create_session()
-        user = db_sess.query(User).filter(User.id == id_).first()
-        print(user.name_image)
-        return render_template('profile.html', name_image=user.name_image, about=user.about,
-                               name=user.name, true=0)
+        try:
+            assert current_user.id == id_
+            return redirect('/profile')
+        except AttributeError:
+            db_sess = db_session.create_session()
+            user = db_sess.query(User).filter(User.id == id_).first()
+            return render_template('profile_.html', name_image=user.name_image, about=user.about,
+                                   name=user.name)
+        except AssertionError:
+            db_sess = db_session.create_session()
+            user = db_sess.query(User).filter(User.id == id_).first()
+            return render_template('profile_.html', name_image=user.name_image, about=user.about,
+                                   name=user.name)
+
+
+@app.route('/city/<int:id_>', methods=['GET', 'POST'])
+def city(id_):
+    if request.method == 'GET':
+        name = db_session.create_session().query(City).filter(City.id == id_).first().name
+        data_locations = db_session.create_session().query(Location).filter(Location.city_id == id_)[::-1]
+        return render_template('city.html', name_city=name, data_locations=data_locations)  # <--
 
 
 @login_manager.user_loader
