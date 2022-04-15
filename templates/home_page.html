@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-
+<form method="post" enctype="multipart/form-data">
 {% if current_user.is_authenticated %}
     <a class="navbar-brand" href="/profile" style="position:absolute;left:1109px;top:97px;width:179px;height:46px;line-height:17px;z-index:1;">{{ current_user.name }}</a>
     {% if current_user.name_image == None %}
@@ -20,10 +20,10 @@
 
 {% endif %}
 
-<input style="position:absolute;left:332px;top:178px;width:600px;height:40px;z-index:5;">
-<p>
-    <a class="btn btn-success" style="position:absolute;left:960px;top:178px;height:40px;" href="/search">Поиск</a>
-</p>
+<input style="position:absolute;left:332px;top:178px;width:600px;height:40px;z-index:5;" name="input_ww">
+
+    <button type="submit" class="btn btn-primary" style="position:absolute;left:960px;top:178px;height:40px;">Поиск</button>
+
 {% if current_user.is_authenticated %}
     <p>
          <a class="btn btn-success" style="position:absolute;left:620px;top:258px;height:40px;" href="/add_location">Добавить</a>
@@ -43,21 +43,33 @@
                     style="vertical-align: top; background-color: rgb(204, 204, 204); width: 217px;"><strong
                     style="color: rgb(77, 77, 77); font-family: &quot;YS Text&quot;,system-ui,-apple-system,&quot;Segoe UI&quot;,Roboto,Ubuntu,Cantarell,&quot;Noto Sans&quot;,sans-serif; font-size: 14px; font-style: normal; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px;">Город</strong></td>
         </tr>
-        {% for elem in data_locations %}
-        <tr>
-            <td
-                    style="vertical-align: top; width: 321px; height: 35px; background-color: rgb(204, 204, 255);"><a href="/location/{{elem.id}}">
-                {{ elem.name }}</a><br>
-            </td>
-            <td
-                    style="vertical-align: top; width: 217px; height: 35px; background-color: rgb(224, 204, 255);"> {{ elem.city.name }} <br>
-            </td>
+        {% if true == 1 %}
+                {% for elem in data_locations %}
+                <tr>
+                    <td
+                            style="vertical-align: top; width: 321px; height: 35px; background-color: rgb(204, 204, 255);"><a href="/location/{{elem.id}}">
+                        {{ elem.name }}</a><br>
+                    </td>
+                    <td
+                            style="vertical-align: top; width: 217px; height: 35px; background-color: rgb(224, 204, 255);"><a href="/city/{{elem.city.id}}">
+                        {{ elem.city.name }}</a><br>
+                    </td>
 
-        </tr>
-        {% endfor %}
+                </tr>
+                {% endfor %}
+        {% elif true == 0 %}
+            {% for elem in data_locations %}
+                <tr>
+                    <td
+                            style="vertical-align: top; width: 321px; height: 35px; background-color: rgb(204, 204, 255);"><a href="/location/{{elem[0][1]}}">
+                        {{ elem[0][0] }}</a><br>
+                    </td></tr>
+                {% endfor %}
+        {% endif %}
+
         </tbody>
     </table>
 <br>
-
+</form>
 
 {% endblock %}
