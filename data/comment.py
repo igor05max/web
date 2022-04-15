@@ -3,6 +3,13 @@ import sqlalchemy
 from .db_session import SqlAlchemyBase
 from sqlalchemy import orm
 from flask_login import UserMixin
+import datetime
+
+
+def my_date():
+    dt = datetime.datetime.now()
+    dt = datetime.datetime(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second)
+    return dt
 
 
 class Comment(SqlAlchemyBase, UserMixin):
@@ -13,7 +20,7 @@ class Comment(SqlAlchemyBase, UserMixin):
     comment = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     # дата внесения в базу данных
     modified_date = sqlalchemy.Column(sqlalchemy.DateTime,
-                                      default=datetime.datetime.now)
+                                      default=my_date)
     # создатель комментария (user)
     creator = sqlalchemy.Column(sqlalchemy.Integer,
                                 sqlalchemy.ForeignKey("users.id"))
