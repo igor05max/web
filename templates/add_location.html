@@ -1,6 +1,11 @@
 {% extends "base.html" %}
 
 {% block content %}
+
+<p>
+        <a class="btn btn-primary" style="position:absolute;left:1160px;top:578px;height:40px;" href="/">Главная страница</a>
+    </p>
+
 <form action="" method="post" enctype="multipart/form-data">
         {{ form.hidden_tag() }}
         <p>
@@ -25,7 +30,7 @@
     {{form.city(list="id_datalist")}}
 <datalist id="id_datalist" >
 {% for entry in entries %}
-<option value={{ entry }} itemscope="itemscope">
+<option value="{{ entry }}" itemscope="itemscope">
 
 {% endfor %}
 </datalist>
