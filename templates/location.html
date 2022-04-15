@@ -2,7 +2,6 @@
 
 {% block content %}
 
-
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -58,12 +57,16 @@
     </br>
 </div>
 </div>
-{% if location.about != "" %}
+<img src="{{url_for('static', filename=location.user.name_image)}}" width="50" height="50"
+        >
+
+<a href="/profile_/{{location.user.id}}" >{{creator}}</a>
 <div class="form-group" align="center">
+{% if location.about != "" %}
         <textarea class="form-control" id="about" rows="4" cols="8" disabled="disabled" name="about"
-        >{{location.about}}</textarea>
+        >{{location.about}}</textarea>{% endif %}
 </div>
-{% endif %}
+
 <br>
 <br>
 <br>
@@ -92,13 +95,20 @@
         <td style="vertical-align: top;width:200px"><img src="{{url_for('static', filename=elem.user.name_image)}}" width="50" height="50"
         >
 
-            <br><a href="/profile/{{elem.user.id}}">{{ elem.user.name }}</a>
+            <br><a href="/profile_/{{elem.user.id}}">{{ elem.user.name }}</a><br>
             {{ elem.modified_date }}
         </td>
+        {% if elem.user.id == 1 %}
         <td style="vertical-align: top; width: 500px">    <div class="form-group" align="center">
+       <textarea class="form-control" rows="4" cols="8" disabled="disabled" name="about" style="background-color: rgb(155, 254, 205);"
+                  >{{elem.comment}}</textarea>
+   </div>
+            {% else %}
+                    <td style="vertical-align: top; width: 500px">    <div class="form-group" align="center">
        <textarea class="form-control" rows="4" cols="8" disabled="disabled" name="about"
                   >{{elem.comment}}</textarea>
-   </div><br>
+   </div>
+            {% endif %}<br>
         </td>
     </tr>
     </tbody>
@@ -107,5 +117,7 @@
 <br>
 <br>
 <hr style="top:273px;width:544px;z-index:5;">
+<a class="btn btn-primary " href="/" style="position:absolute;left:1109px;top:97px;z-index:1;">Главная страница</a>
+
 {% endfor %}
 {% endblock %}
