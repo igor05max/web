@@ -20,7 +20,10 @@ from data.comment import Comment
 from data import location_api
 from data.similarity import search
 import json
-
+from forms.edit_a_comment import EditAComment
+from datetime import datetime
+from data.chat import Chat
+from data.message import Message
 
 app = Flask(__name__)
 login_manager = LoginManager()
@@ -46,6 +49,16 @@ def main():
         user.set_password("111")
         db_sess.add(user)
         db_sess.commit()
+    # message = Message()
+    # message.creator = "2"
+    # message.recipient = "3"
+    # message.message = "11212121"
+    # db_sess.add(message)
+    # chat = Chat()
+    # chat.participants = "2, 3"
+    # db_sess.add(chat)
+    # db_sess.commit()
+    # db_sess.commit()
     app.run()
 
 
@@ -126,7 +139,7 @@ def search_():
 def profile():
     if request.method == 'GET':
         return render_template('profile.html', name_image=current_user.name_image, about=current_user.about,
-                               name=current_user.name)
+                               name=current_user.name, name_id=current_user.id)
 
 
 @app.route('/to_change_profile', methods=['GET', 'POST'])
@@ -192,6 +205,7 @@ def location_id(id_):
             comment.comment = text
             comment.creator = current_user.id
             comment.location_id = id_
+            comment.edit = ""
             db_sess.add(comment)
             db_sess.commit()
         return redirect(f'/location/{id_}')
@@ -254,12 +268,12 @@ def profile_id(id_):
             db_sess = db_session.create_session()
             user = db_sess.query(User).filter(User.id == id_).first()
             return render_template('profile_.html', name_image=user.name_image, about=user.about,
-                                   name=user.name)
+                                   name=user.name, name_id=user.id)
         except AssertionError:
             db_sess = db_session.create_session()
             user = db_sess.query(User).filter(User.id == id_).first()
             return render_template('profile_.html', name_image=user.name_image, about=user.about,
-                                   name=user.name)
+                                   name=user.name, name_id=user.id)
 
 
 @app.route('/city/<int:id_>', methods=['GET', 'POST'])
@@ -267,7 +281,66 @@ def city(id_):
     if request.method == 'GET':
         name = db_session.create_session().query(City).filter(City.id == id_).first().name
         data_locations = db_session.create_session().query(Location).filter(Location.city_id == id_)[::-1]
-        return render_template('city.html', name_city=name, data_locations=data_locations)  # <--
+        return render_template('city.html', name_city=name, data_locations=data_locations)
+
+
+@app.route('/edit_a_comment/<int:id_>', methods=['GET', 'POST'])
+@login_required
+def edit_a_comment(id_):
+    form = EditAComment()
+    if request.method == 'GET':
+        db_sess = db_session.create_session()
+        comment = db_sess.query(Comment).filter(Comment.id == id_).first()
+        if comment:
+            form.comment.data = comment.comment
+        return render_template('edit_a_comment.html', form=form)
+    elif request.method == 'POST':
+        db_sess = db_session.create_session()
+        comment = db_sess.query(Comment).filter(Comment.id == id_).first()
+        if comment:
+            now = datetime.now()
+            comment.edit = f"(ред. {now.strftime('%H:%M:%S')})"
+            comment.comment = form.comment.data
+            db_sess.commit()
+        return redirect(
+            f'/location/{db_sess.query(Location).filter(Location.id == comment.location_id).first().id}')
+    return render_template('edit_a_comment.html', form=form)
+
+
+@app.route('/delete_a_comment/<int:id_>/<int:id_2>', methods=['GET', 'POST'])
+@login_required
+def delete_a_comment(id_, id_2):
+    if request.method == 'GET':
+        db_sess = db_session.create_session()
+        comment = db_sess.query(Comment).filter(Comment.id == id_).first()
+        if comment:
+            if not comment.remote:
+                user = db_sess.query(User).filter(User.id == id_2).first()
+                if user:
+                    if id_2 == 1:
+                        comment.comment = "Удалён АДМИНИСТРАТОРОМ"
+                    else:
+                        comment.comment = f"Комментарий удалил пользователь"
+                    comment.remote = True
+                    now = datetime.now()
+                    comment.edit = f"({now.strftime('%H:%M:%S')})"
+                    db_sess.commit()
+            return redirect(
+                f'/location/{db_sess.query(Location).filter(Location.id == comment.location_id).first().id}')
+        return redirect('/')
+
+
+@app.route('/chat/<int:id_>', methods=['GET', 'POST'])
+@login_required
+def chat(id_):
+    if request.method == 'GET':
+        db_sess = db_session.create_session()
+        chat = [i for i in db_sess.query(Chat).all() if id_ in list(map(int, i.participants.split(", ")))]
+
+        print(chat[0].modified_date)
+        return render_template('chat.html')
+    elif request.method == 'POST':
+        pass
 
 
 @login_manager.user_loader

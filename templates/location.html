@@ -21,6 +21,7 @@
 
 <h2 align="center"> {{ name }} </h2>
 <div>
+    <a class="btn btn-primary " href="/" style="position:absolute;left:1109px;top:97px;z-index:1;">Главная страница</a>
 
     <div align="center" id="carousel-example-generic" class="carousel slide" data-ride="carousel">
         <ol class="carousel-indicators">
@@ -58,13 +59,13 @@
 </div>
 </div>
 <img src="{{url_for('static', filename=location.user.name_image)}}" width="50" height="50"
-        >
+>
 
-<a href="/profile_/{{location.user.id}}" >{{creator}}</a>
+<a href="/profile_/{{location.user.id}}">{{creator}}</a>
 <div class="form-group" align="center">
-{% if location.about != "" %}
-        <textarea class="form-control" id="about" rows="4" cols="8" disabled="disabled" name="about"
-        >{{location.about}}</textarea>{% endif %}
+    {% if location.about != "" %}
+    <textarea class="form-control" id="about" rows="4" cols="8" disabled="disabled" name="about"
+    >{{location.about}}</textarea>{% endif %}
 </div>
 
 <br>
@@ -92,22 +93,47 @@
 
     <tbody>
     <tr>
-        <td style="vertical-align: top;width:200px"><img src="{{url_for('static', filename=elem.user.name_image)}}" width="50" height="50"
+        <td style="vertical-align: top;width:200px"><img src="{{url_for('static', filename=elem.user.name_image)}}"
+                                                         width="50" height="50"
         >
 
             <br><a href="/profile_/{{elem.user.id}}">{{ elem.user.name }}</a><br>
             {{ elem.modified_date }}
         </td>
         {% if elem.user.id == 1 %}
-        <td style="vertical-align: top; width: 500px">    <div class="form-group" align="center">
-       <textarea class="form-control" rows="4" cols="8" disabled="disabled" name="about" style="background-color: rgb(155, 254, 205);"
-                  >{{elem.comment}}</textarea>
-   </div>
-            {% else %}
-                    <td style="vertical-align: top; width: 500px">    <div class="form-group" align="center">
+        <td style="vertical-align: top; width: 500px">
+            <div class="form-group" align="center">
        <textarea class="form-control" rows="4" cols="8" disabled="disabled" name="about"
-                  >{{elem.comment}}</textarea>
-   </div>
+                 style="background-color: rgb(155, 254, 205);"
+       >{{elem.comment}}</textarea>
+            </div>
+            {% if elem.remote != True and current_user.id == 1%}
+            <a href="/delete_a_comment/{{elem.id}}/{{current_user.id}}" class="btn btn-danger">
+                Удалить
+            </a> <a href="/edit_a_comment/{{elem.id}}" class="btn btn-warning">
+                Редактировать
+            </a>{% endif %}
+            {% else %}
+
+        <td style="vertical-align: top; width: 500px">
+            <div class="form-group" align="center">
+                {% if elem.edit != None %}
+                <textarea class="form-control" rows="4" cols="8" disabled="disabled" name="about"
+                >{{elem.comment}}  {{elem.edit}}</textarea>
+                {% else %}
+                <textarea class="form-control" rows="4" cols="8" disabled="disabled" name="about"
+                >{{elem.comment}}</textarea>
+                {% endif %}
+            </div>
+            {% if current_user.is_authenticated %} {% if elem.user.id == current_user.id and elem.remote != True %}
+            <a href="/edit_a_comment/{{elem.id}}" class="btn btn-warning">
+                Редактировать
+            </a>{% endif %}
+            {% if (elem.user.id == current_user.id or current_user.id == 1) and elem.remote != True %}
+            <a href="/delete_a_comment/{{elem.id}}/{{current_user.id}}" class="btn btn-danger">
+                Удалить
+            </a>
+            {% endif %}{% endif %}
             {% endif %}<br>
         </td>
     </tr>
@@ -117,7 +143,7 @@
 <br>
 <br>
 <hr style="top:273px;width:544px;z-index:5;">
-<a class="btn btn-primary " href="/" style="position:absolute;left:1109px;top:97px;z-index:1;">Главная страница</a>
+
 
 {% endfor %}
 {% endblock %}

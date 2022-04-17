@@ -21,6 +21,11 @@ class Comment(SqlAlchemyBase, UserMixin):
     # дата внесения в базу данных
     modified_date = sqlalchemy.Column(sqlalchemy.DateTime,
                                       default=my_date)
+    # редактирование комментария
+    edit = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+
+    remote = sqlalchemy.Column(sqlalchemy.Boolean, default=False)
+
     # создатель комментария (user)
     creator = sqlalchemy.Column(sqlalchemy.Integer,
                                 sqlalchemy.ForeignKey("users.id"))
