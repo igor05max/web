@@ -23,4 +23,3 @@ class Chat(SqlAlchemyBase, UserMixin):
     participants = sqlalchemy.Column(sqlalchemy.String, nullable=True)
 
     list_messages = sqlalchemy.Column(sqlalchemy.String, nullable=True)
-    new_message = sqlalchemy.Column(sqlalchemy.String, nullable=True)
