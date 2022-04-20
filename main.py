@@ -1,14 +1,12 @@
-from flask import Flask, redirect, request, abort, jsonify
 from data import db_session
 from data.users import User
 from flask import render_template
-from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from forms.registration import RegistrationForm
 from forms.entrance import EntranceForm
 from forms.to_change_profile import To_changeForm
 import os
-from flask import Flask, flash, request, redirect, url_for
+from flask import Flask, flash, request, redirect, url_for, jsonify
 from forms.location import LocationForm
 from key import KEY
 from data.city import City
@@ -62,10 +60,14 @@ def entrance():
         user = db_sess.query(User).filter(User.email == form.email.data).first()
         if user and user.check_password(form.password.data):
             login_user(user, remember=form.remember_me.data)
+            if current_user.is_authenticated and current_user.blocked:
+                return render_template('entrance.html',
+                                       message="Вы заблокированны",
+                                       form=form, title='Авторизация')
             return redirect("/")
         return render_template('entrance.html',
                                message="Неправильный логин или пароль",
-                               form=form)
+                               form=form, title='Авторизация')
     return render_template('entrance.html', title='Авторизация', form=form)
 
 
@@ -101,6 +103,8 @@ def registration():
 
 @app.route('/', methods=['GET', 'POST'])
 def home_page():
+    if current_user.is_authenticated and current_user.blocked:
+        return redirect('/logout')
     if request.method == "GET":
         try:
             db_sess = db_session.create_session()
@@ -119,6 +123,8 @@ def home_page():
 
 @app.route('/search', methods=['GET', 'POST'])
 def search_():
+    if current_user.is_authenticated and current_user.blocked:
+        return redirect('/logout')
     if request.method == "GET":
         with open('data_file.json', 'r', encoding='utf-8') as f:
             data = json.load(f)
@@ -135,6 +141,8 @@ def search_():
 @app.route('/profile', methods=['GET', 'POST'])
 @login_required
 def profile():
+    if current_user.is_authenticated and current_user.blocked:
+        return redirect('/logout')
     if request.method == 'GET':
         return render_template('profile.html', name_image=current_user.name_image, about=current_user.about,
                                name=current_user.name, name_id=current_user.id)
@@ -142,6 +150,8 @@ def profile():
 
 @app.route('/to_change_profile', methods=['GET', 'POST'])
 def to_change_profile():
+    if current_user.is_authenticated and current_user.blocked:
+        return redirect('/logout')
     form = To_changeForm()
     if request.method == "GET":
         if current_user:
@@ -178,6 +188,8 @@ def to_change_profile():
 
 @app.route('/location/<int:id_>', methods=['GET', 'POST'])
 def location_id(id_):
+    if current_user.is_authenticated and current_user.blocked:
+        return redirect('/logout')
     if request.method == 'GET':
         db_sess = db_session.create_session()
         location = db_sess.query(Location).filter(Location.id == id_).first()
@@ -212,6 +224,8 @@ def location_id(id_):
 @app.route('/add_location', methods=['GET', 'POST'])
 @login_required
 def add_location():
+    if current_user.is_authenticated and current_user.blocked:
+        return redirect('/logout')
     form = LocationForm()
     f = open("all_cities.txt", encoding="utf8")
     data_city = [i.replace("\t", " ").replace("\n", "") for i in f]
@@ -263,6 +277,8 @@ def add_location():
 
 @app.route('/profile_/<int:id_>', methods=['GET', 'POST'])
 def profile_id(id_):
+    if current_user.is_authenticated and current_user.blocked:
+        return redirect('/logout')
     if request.method == 'GET':
         try:
             assert current_user.id == id_
@@ -270,7 +286,7 @@ def profile_id(id_):
         except (AttributeError, AssertionError):
             db_sess = db_session.create_session()
             user = db_sess.query(User).filter(User.id == id_).first()
-            return render_template('profile_.html', name_image=user.name_image, about=user.about,
+            return render_template('profile_.html', name_image=user.name_image, about=user.about, user=user,
                                    name=user.name, name_id=user.id)
     elif request.method == 'POST':
         pass
@@ -278,6 +294,8 @@ def profile_id(id_):
 
 @app.route('/city/<int:id_>', methods=['GET', 'POST'])
 def city(id_):
+    if current_user.is_authenticated and current_user.blocked:
+        return redirect('/logout')
     if request.method == 'GET':
         name = db_session.create_session().query(City).filter(City.id == id_).first().name
         data_locations = db_session.create_session().query(Location).filter(Location.city_id == id_)[::-1]
@@ -287,6 +305,8 @@ def city(id_):
 @app.route('/edit_a_comment/<int:id_>', methods=['GET', 'POST'])
 @login_required
 def edit_a_comment(id_):
+    if current_user.is_authenticated and current_user.blocked:
+        return redirect('/logout')
     form = EditAComment()
     if request.method == 'GET':
         db_sess = db_session.create_session()
@@ -310,6 +330,8 @@ def edit_a_comment(id_):
 @app.route('/delete_a_comment/<int:id_>/<int:id_2>', methods=['GET', 'POST'])
 @login_required
 def delete_a_comment(id_, id_2):
+    if current_user.is_authenticated and current_user.blocked:
+        return redirect('/logout')
     if request.method == 'GET':
         db_sess = db_session.create_session()
         comment = db_sess.query(Comment).filter(Comment.id == id_).first()
@@ -333,6 +355,10 @@ def delete_a_comment(id_, id_2):
 @app.route('/chat/<int:id_>', methods=['GET', 'POST'])
 @login_required
 def chat(id_):
+    if current_user.is_authenticated and current_user.blocked:
+        return redirect('/logout')
+    if not current_user.id == id_:
+        return redirect(f'/chat/{current_user.id}')
     if request.method == 'GET':
         db_sess = db_session.create_session()
         chat_list = []
@@ -357,9 +383,13 @@ def chat(id_):
 @app.route('/chat_/<int:id_>', methods=['GET', 'POST'])
 @login_required
 def chat_id(id_):
+    if current_user.is_authenticated and current_user.blocked:
+        return redirect('/logout')
     if request.method == 'GET':
         db_sess = db_session.create_session()
         chat = db_sess.query(Chat).filter(Chat.id == id_).first()
+        if str(current_user.id) not in chat.participants.split(", "):
+            return redirect(f'/chat/{current_user.id}')
         list_message_ = [db_sess.query(Message).filter(Message.id == id_i).first()
                          for id_i in [i for i in list(map(int, chat.list_messages.split(", ")))]]
         for i in list_message_:
@@ -398,6 +428,8 @@ def chat_id(id_):
 @app.route('/new_chat/<int:id_>', methods=['GET', 'POST'])
 @login_required
 def new_chat(id_):
+    if current_user.is_authenticated and current_user.blocked:
+        return redirect('/logout')
     form = NewChat()
     if request.method == 'GET':
         db_sess = db_session.create_session()
@@ -434,6 +466,8 @@ def new_chat(id_):
 @app.route('/delete_a_message/<int:message_id>/<int:current_user_id>/<int:chat_id>')
 @login_required
 def delete_a_message(message_id, current_user_id, chat_id):
+    if current_user.is_authenticated and current_user.blocked:
+        return redirect('/logout')
     if current_user.id == current_user_id:
         db_sess = db_session.create_session()
         message = db_sess.query(Message).filter(Message.id == message_id).first()
@@ -444,6 +478,18 @@ def delete_a_message(message_id, current_user_id, chat_id):
             message.remote = True
             db_sess.commit()
         return redirect(f'/chat_/{chat_id}')
+
+
+@app.route('/blocked/<int:id_user>')
+@login_required
+def blocked(id_user):
+    if current_user.id == 1 and id_user != 1:
+        db_sess = db_session.create_session()
+        user = db_sess.query(User).filter(User.id == id_user).first()
+        if user:
+            user.blocked = not user.blocked
+            db_sess.commit()
+        return redirect(f'/profile_/{id_user}')
 
 
 @login_manager.user_loader
