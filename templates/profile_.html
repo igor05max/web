@@ -42,6 +42,14 @@
     <a class="btn btn-primary" style="position:absolute;left:100px;top:608px;height:40px;"
        href="/new_chat/{{name_id}}">Написать сообшение</a>
 </p>
+{% if current_user.id == 1 %}
+<p>
+    {% if not user.blocked %}
+    <a class="btn btn-primary" href="/blocked/{{name_id}}"> Заблокировать </a>{% else %}<a class="btn btn-primary"
+                                                                                            href="/blocked/{{name_id}}">
+    Разблокировать </a>{%endif%}
+
+</p>{% endif %}
 {% endif %}
 
 {% endblock %}
