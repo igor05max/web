@@ -37,5 +37,11 @@
     <a class="btn btn-primary" style="position:absolute;left:100px;top:28px;height:40px;" href="/">Главная страница</a>
 </p>
 <h2>id: {{ name_id }}</h2>
+{% if current_user.is_authenticated %}
+<p>
+    <a class="btn btn-primary" style="position:absolute;left:100px;top:608px;height:40px;"
+       href="/new_chat/{{name_id}}">Написать сообшение</a>
+</p>
+{% endif %}
 
 {% endblock %}
