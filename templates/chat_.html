@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% if current_user.is_authenticated %}
+
+<form method="post" enctype="multipart/form-data" xmlns="http://www.w3.org/1999/html"
+      xmlns="http://www.w3.org/1999/html">
+
+<!--<input style="position:absolute;left:32px;top:128px;width:300px;height:40px;z-index:5;" name="input_ww">-->
+<!--<button type="submit" class="btn btn-primary" style="position:absolute;left:360px;top:128px;height:40px;">Поиск</button>-->
+
+</form>
+<form method="post" enctype="multipart/form-data">
+         <div id="wb_Image2">
+                    <img src="{{ url_for('static', filename=message_user_2.name_image) }}" id="Image2" alt="" width="73" height="73">
+         </div>
+    <a class="navbar-brand" href="/profile_/{{message_user_2.id}}" style="position:absolute;width:179px;height:46px;line-height:17px;z-index:1;">{{ message_user_2.name }}</a>
+</form>
+<table style="position:absolute;left:450px;top:108px;height:140px;width:100;text-align: left; width: 914px; height: 120px;" border="0"
+           cellpadding="2" cellspacing="2">
+        <tbody>
+        {% for elem in list_message_%}
+        {% if elem.creator != current_user_id %}
+            <tr>
+                <td
+                        style="vertical-align: top; background-color: rgb(204, 204, 204); width: 321px;"><strong
+                        style="color: rgb(77, 77, 77); font-family: &quot;YS Text&quot;,system-ui,-apple-system,&quot;Segoe UI&quot;,Roboto,Ubuntu,Cantarell,&quot;Noto Sans&quot;,sans-serif; font-size: 14px; font-style: normal; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px;">
+                    <textarea class="form-control" rows="4" cols="8" disabled="disabled"
+                    >{{elem.message}}  </textarea>
+                        <h7>{{elem.modified_date}}</h7>
+
+                </strong></td>
+                <td
+                        style="vertical-align: top; background-color: rgb(204, 204, 204); width: 217px;"></td>
+            </tr>
+        {% else %}
+        <tr>
+            {% if elem.had_seen %}
+                <td
+                        style="vertical-align: top; background-color: rgb(204, 204, 204); width: 217px;"></td>
+                <td
+                        style="vertical-align: top; background-color: rgb(204, 204, 204); width: 321px;"><strong
+                        style="color: rgb(77, 77, 77); font-family: &quot;YS Text&quot;,system-ui,-apple-system,&quot;Segoe UI&quot;,Roboto,Ubuntu,Cantarell,&quot;Noto Sans&quot;,sans-serif; font-size: 14px; font-style: normal; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px;">
+                    <textarea class="form-control" rows="4" cols="8" disabled="disabled" style="background-color: rgb(155, 254, 205);"
+                    >{{elem.message}}  </textarea><h7>{{elem.modified_date}}</h7>
+                {%if not elem.remote %}<a href="/delete_a_message/{{elem.id}}/{{current_user.id}}/{{chat.id}}" class="btn btn-danger">
+                Удалить
+            </a>{%endif%} </strong></td>
+            {% else %}
+                <td
+                        style="vertical-align: top; background-color: rgb(204, 204, 204); width: 217px;"></td>
+                <td
+                        style="vertical-align: top; background-color: rgb(204, 204, 204); width: 321px;"><strong
+                        style="color: rgb(77, 77, 77); font-family: &quot;YS Text&quot;,system-ui,-apple-system,&quot;Segoe UI&quot;,Roboto,Ubuntu,Cantarell,&quot;Noto Sans&quot;,sans-serif; font-size: 14px; font-style: normal; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px;">
+                    <textarea class="form-control" rows="4" cols="8" disabled="disabled"
+                    >{{elem.message}}  </textarea><h7>{{elem.modified_date}}</h7>
+                    {%if not elem.remote %}<a href="/delete_a_message/{{elem.id}}/{{current_user.id}}/{{chat.id}}" class="btn btn-danger">
+                Удалить
+            </a>{%endif%} </strong></td>
+
+            {% endif %}
+            </tr>
+
+        {% endif %}
+</br></br></br></br></br></br>
+{% endfor %}
+
+        </tbody>
+    </table>
+
+<div class="form-group">
+    <form method="post" enctype="multipart/form-data">
+        <textarea class="form-control" id="about2" rows="4" cols="8" name="message" placeholder="Сообщение..."
+                  style="position:absolute;left:452px;top:628px;width:700px;height:40px;z-index:5;bottom:0;position:fixed;"
+        ></textarea>
+        {% if not message_not %}
+        <button type="submit" class="btn btn-primary"
+                style="position:absolute;left:1172px;top:628px;height:40px;z-index:5;bottom:0;position:fixed;">Отправить</button>
+        {% endif %}
+    </form>
+</div>
+</br></br></br></br></br>
+<a class="btn btn-primary " href="/chat/{{current_user.id}}" style="top:628px;height:40px;bottom:0;position:fixed;">Все чаты</a>
+{% endif %}
+{% endblock %}
