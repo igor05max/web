@@ -2,12 +2,33 @@
 
 {% block content %}
 
-<form method="post" enctype="multipart/form-data">
+<form method="post" enctype="multipart/form-data" xmlns="http://www.w3.org/1999/html"
+      xmlns="http://www.w3.org/1999/html">
 
-<input style="position:absolute;left:332px;top:128px;width:600px;height:40px;z-index:5;" name="input_ww">
-<button type="submit" class="btn btn-primary" style="position:absolute;left:960px;top:128px;height:40px;">Поиск</button>
+<!--<input style="position:absolute;left:32px;top:128px;width:300px;height:40px;z-index:5;" name="input_ww">-->
+<!--<button type="submit" class="btn btn-primary" style="position:absolute;left:360px;top:128px;height:40px;">Поиск</button>-->
+</br></br></br></br></br>
+{% for elem in chat_list %}
+<table style="text-align: left; width: 211px; height: 104px;" border="0"
+cellpadding="2" cellspacing="2">
 
+    <tbody>
+    <tr>
+    <td style="vertical-align: top;width:200px"><img src="{{url_for('static', filename=elem[1].name_image)}}"
+                                                         width="50" height="50"
+    ><br><a href="/chat_/{{elem[0].id}}">{{elem[1].name}}</a>
+    </td><td style="vertical-align: top; width: 50px">
+        <div class="form-group" align="center">
+            {% if not elem[2].had_seen %}
+            <input name="input" placeholder="{{elem[2].message}}" disabled="disabled" style="background-color: rgb(250, 154, 125);">
+            <h7>{{ elem[2].modified_date }}</h7>{% else %}
+            <input name="input" placeholder="{{elem[2].message}}" disabled="disabled">
+            <h7>{{ elem[2].modified_date }}</h7>{% endif %}
+        </div>
+    </tr></tbody></table>
+    <br><br>
+    {% endfor %}
 
-
+    <a class="btn btn-primary " href="/" style="top:628px;height:40px;bottom:0;position:fixed;">Главная страница</a>
 </form>
 {% endblock %}
