@@ -1,4 +1,4 @@
-from flask import Flask, redirect, request, abort
+from flask import Flask, redirect, request, abort, jsonify
 from data import db_session
 from data.users import User
 from flask import render_template
@@ -51,16 +51,6 @@ def main():
         user.set_password("111")
         db_sess.add(user)
         db_sess.commit()
-    # message = Message()
-    # message.creator = "2"
-    # message.recipient = "3"
-    # message.message = "11212121"
-    # db_sess.add(message)
-    # chat = Chat()
-    # chat.participants = "2, 3"
-    # db_sess.add(chat)
-    # db_sess.commit()
-    # db_sess.commit()
     app.run()
 
 
@@ -89,7 +79,7 @@ def registration():
                                    message="Пароли не совпадают")
         db_sess = db_session.create_session()
         if db_sess.query(User).filter(User.email == form.email.data).first():
-            return render_template('registration.html', title='Регистрация',
+            return render_template('registration.html',
                                    form=form,
                                    message="Такой пользователь уже есть")
 
@@ -244,6 +234,11 @@ def add_location():
                 db_sess.commit()
                 mass.append(str(db_sess.query(Image).filter(Image.image == name_file).first().id))
         city = db_sess.query(City).filter(City.name == form.city.data).first()
+        if form.city.data not in data_city:
+            return render_template('add_location.html',
+                                   message="Неправильный регион",
+                                   entries=data_city,
+                                   form=form)
         if not city:
             city = City()
             city.name = form.city.data
@@ -467,6 +462,11 @@ def logout():
 @app.errorhandler(500)
 def not_found(error):
     return redirect("/")
+
+
+@app.errorhandler(404)
+def not_found(error):
+    return make_response(jsonify({'error': 'Not found'}), 404)
 
 
 if __name__ == '__main__':
