@@ -10,7 +10,6 @@ from forms.to_change_profile import To_changeForm
 import os
 from flask import Flask, flash, request, redirect, url_for
 from forms.location import LocationForm
-from werkzeug.utils import secure_filename
 from key import KEY
 from data.city import City
 from data.location import Location
@@ -24,6 +23,9 @@ from forms.edit_a_comment import EditAComment
 from datetime import datetime
 from data.chat import Chat
 from data.message import Message
+from forms.new_chat import NewChat
+from flask import make_response
+
 
 app = Flask(__name__)
 login_manager = LoginManager()
@@ -110,8 +112,14 @@ def registration():
 @app.route('/', methods=['GET', 'POST'])
 def home_page():
     if request.method == "GET":
+        try:
+            db_sess = db_session.create_session()
+            assert [i for i in db_sess.query(Message).all() if str(current_user.id) == i.recipient and not i.had_seen]
+            color = "btn btn-danger"
+        except (AttributeError, AssertionError):
+            color = "btn btn-info"
         data_locations = db_session.create_session().query(Location).all()[::-1]
-        return render_template('home_page.html', data_locations=data_locations)
+        return render_template('home_page.html', data_locations=data_locations, color=color)
     elif request.method == 'POST':
         request_text = request.form['input_ww'].strip()
         answer = search(request_text)
@@ -264,16 +272,13 @@ def profile_id(id_):
         try:
             assert current_user.id == id_
             return redirect('/profile')
-        except AttributeError:
+        except (AttributeError, AssertionError):
             db_sess = db_session.create_session()
             user = db_sess.query(User).filter(User.id == id_).first()
             return render_template('profile_.html', name_image=user.name_image, about=user.about,
                                    name=user.name, name_id=user.id)
-        except AssertionError:
-            db_sess = db_session.create_session()
-            user = db_sess.query(User).filter(User.id == id_).first()
-            return render_template('profile_.html', name_image=user.name_image, about=user.about,
-                                   name=user.name, name_id=user.id)
+    elif request.method == 'POST':
+        pass
 
 
 @app.route('/city/<int:id_>', methods=['GET', 'POST'])
@@ -335,12 +340,115 @@ def delete_a_comment(id_, id_2):
 def chat(id_):
     if request.method == 'GET':
         db_sess = db_session.create_session()
-        chat = [i for i in db_sess.query(Chat).all() if id_ in list(map(int, i.participants.split(", ")))]
+        chat_list = []
+        for i in db_sess.query(Chat).all():
+            ms = list(map(int, i.participants.split(", ")))
+            if id_ in ms:
+                if ms[0] != id_:
+                    id_2 = ms[0]
+                else:
+                    id_2 = ms[1]
+                user = db_sess.query(User).filter(User.id == id_2).first()
+                chat_list.append([i, user,
+                                  db_sess.query(Message).filter(Message.id ==
+                                                                int(i.list_messages.split(", ")[-1])).first()])
+                chat_list = sorted(chat_list, key=lambda x: x[2].modified_date, reverse=True)
 
-        print(chat[0].modified_date)
-        return render_template('chat.html')
+        return render_template('chat.html', chat_list=chat_list)
     elif request.method == 'POST':
         pass
+
+
+@app.route('/chat_/<int:id_>', methods=['GET', 'POST'])
+@login_required
+def chat_id(id_):
+    if request.method == 'GET':
+        db_sess = db_session.create_session()
+        chat = db_sess.query(Chat).filter(Chat.id == id_).first()
+        list_message_ = [db_sess.query(Message).filter(Message.id == id_i).first()
+                         for id_i in [i for i in list(map(int, chat.list_messages.split(", ")))]]
+        for i in list_message_:
+            if i.recipient == str(current_user.id) and not i.had_seen:
+                i.had_seen = True
+        db_sess.commit()
+        message_user_2 = list_message_[0]
+        if message_user_2.recipient == str(current_user.id):
+            message_user_2 = message_user_2.creator
+        else:
+            message_user_2 = message_user_2.recipient
+        message_user_2 = db_sess.query(User).filter(User.id == int(message_user_2)).first()
+        return render_template('chat_.html', list_message_=list_message_, current_user_id=str(current_user.id),
+                               message_user_2=message_user_2, chat=chat)
+    elif request.method == 'POST':
+        db_sess = db_session.create_session()
+        message = Message()
+        message.creator = str(current_user.id)
+        chat = db_sess.query(Chat).filter(Chat.id == id_).first()
+        message_recipient_chat = chat.participants.split(", ")
+        if int(message_recipient_chat[0]) == current_user.id:
+            message.recipient = message_recipient_chat[1]
+        else:
+            message.recipient = message_recipient_chat[0]
+        message.message = request.form['message']
+        db_sess.add(message)
+        db_sess.commit()
+
+        chat.list_messages = chat.list_messages + ", " + str([i for i in db_sess.query(Message).all()
+                                                              if i.creator == str(current_user.id)][-1].id)
+        db_sess.commit()
+
+        return redirect(f'/chat_/{id_}')
+
+
+@app.route('/new_chat/<int:id_>', methods=['GET', 'POST'])
+@login_required
+def new_chat(id_):
+    form = NewChat()
+    if request.method == 'GET':
+        db_sess = db_session.create_session()
+        chat_not_new = db_sess.query(Chat).filter(Chat.participants.in_([f'{current_user.id}, {id_}',
+                                                                         f'{id_}, {current_user.id}'])).first()
+        if chat_not_new:
+            return redirect(f'/chat_/{chat_not_new.id}')
+        else:
+            return render_template('new_chat.html', form=form)
+    elif form.validate_on_submit():
+        db_sess = db_session.create_session()
+        message_new_chat_text = form.message.data
+        message_new_chat = Message()
+        message_new_chat.message = message_new_chat_text
+        message_new_chat.creator = str(current_user.id)
+        message_new_chat.recipient = str(id_)
+        db_sess.add(message_new_chat)
+        db_sess.commit()
+        message_new_id = db_sess.query(Message).filter(Message.creator == str(current_user.id),
+                                                       Message.recipient == str(id_)).first()
+        if message_new_id:
+            message_new_id = message_new_id.id
+            new_chat = Chat()
+            new_chat.list_messages = str(message_new_id)
+            new_chat.participants = f"{current_user.id}, {id_}"
+            db_sess.add(new_chat)
+            db_sess.commit()
+        chat_not_new = db_sess.query(Chat).filter(Chat.participants.in_([f'{current_user.id}, {id_}',
+                                                                         f'{id_}, {current_user.id}'])).first()
+        if chat_not_new:
+            return redirect(f'/chat_/{chat_not_new.id}')
+
+
+@app.route('/delete_a_message/<int:message_id>/<int:current_user_id>/<int:chat_id>')
+@login_required
+def delete_a_message(message_id, current_user_id, chat_id):
+    if current_user.id == current_user_id:
+        db_sess = db_session.create_session()
+        message = db_sess.query(Message).filter(Message.id == message_id).first()
+        if message:
+            dt = datetime.now()
+            dt = datetime(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second)
+            message.message = f"Удалено сообщение ({dt})"
+            message.remote = True
+            db_sess.commit()
+        return redirect(f'/chat_/{chat_id}')
 
 
 @login_manager.user_loader
@@ -353,6 +461,11 @@ def load_user(user_id):
 @login_required
 def logout():
     logout_user()
+    return redirect("/")
+
+
+@app.errorhandler(500)
+def not_found(error):
     return redirect("/")
 
 
