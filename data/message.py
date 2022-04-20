@@ -22,8 +22,11 @@ class Message(SqlAlchemyBase, UserMixin):
 
     message = sqlalchemy.Column(sqlalchemy.String, nullable=True)
 
+    remote = sqlalchemy.Column(sqlalchemy.Boolean, default=False)
+
     # создатель сообщение (user)
     creator = sqlalchemy.Column(sqlalchemy.String, nullable=True)
 
     recipient = sqlalchemy.Column(sqlalchemy.String, nullable=True)
 
+    had_seen = sqlalchemy.Column(sqlalchemy.Boolean, default=False)
