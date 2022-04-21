@@ -10,7 +10,8 @@ class Location(SqlAlchemyBase, UserMixin, SerializerMixin):
     __tablename__ = "locations"
     id = sqlalchemy.Column(sqlalchemy.Integer,
                            primary_key=True, autoincrement=True)
-    name = sqlalchemy.Column(sqlalchemy.String, nullable=True)  # название достопримечательности
+    # название достопримечательности
+    name = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     # список картинок достопримечательности
     img = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     # категория (памятник, музей, парк и т.д)
@@ -27,6 +28,7 @@ class Location(SqlAlchemyBase, UserMixin, SerializerMixin):
                                 sqlalchemy.ForeignKey("users.id"))
     user = orm.relation('User')
 
+    # ID города
     city_id = sqlalchemy.Column(sqlalchemy.Integer,
                                 sqlalchemy.ForeignKey("cities.id"))
     city = orm.relation('City')
