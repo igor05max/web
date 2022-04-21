@@ -1,9 +1,9 @@
-from fuzzywuzzy import fuzz
 from fuzzywuzzy import process
 from requests import get
 import json
 
 
+# поиск и сортировка всех локаций по запросу
 def search(request_):
     data = get('http://localhost:5000/api/location').json()
     list_answers = []
