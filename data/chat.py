@@ -20,6 +20,7 @@ class Chat(SqlAlchemyBase, UserMixin):
     modified_date = sqlalchemy.Column(sqlalchemy.DateTime,
                                       default=my_date)
 
+    # участники чата
     participants = sqlalchemy.Column(sqlalchemy.String, nullable=True)
 
     list_messages = sqlalchemy.Column(sqlalchemy.String, nullable=True)
