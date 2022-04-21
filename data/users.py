@@ -25,6 +25,7 @@ class User(SqlAlchemyBase, UserMixin):
     # пользователь о себе
     about = sqlalchemy.Column(sqlalchemy.String, nullable=True)
 
+    # заблокирован ли пользователь
     blocked = sqlalchemy.Column(sqlalchemy.Boolean, default=False)
 
     def set_password(self, password):
