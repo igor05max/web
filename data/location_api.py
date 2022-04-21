@@ -1,7 +1,7 @@
 import flask
 from . import db_session
 from .location import Location
-from flask import jsonify, request
+from flask import jsonify
 from flask import make_response
 
 
@@ -12,6 +12,7 @@ blueprint = flask.Blueprint(
 )
 
 
+# API для получения всех локаций
 @blueprint.route('/api/location')
 def get_location():
     db_sess = db_session.create_session()
