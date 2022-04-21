@@ -19,14 +19,17 @@ class Message(SqlAlchemyBase, UserMixin):
     # дата внесения в базу данных
     modified_date = sqlalchemy.Column(sqlalchemy.DateTime,
                                       default=my_date)
-
+    # сообщение
     message = sqlalchemy.Column(sqlalchemy.String, nullable=True)
 
+    # удалено ли сообщение
     remote = sqlalchemy.Column(sqlalchemy.Boolean, default=False)
 
-    # создатель сообщение (user)
+    # создатель сообщения (user)
     creator = sqlalchemy.Column(sqlalchemy.String, nullable=True)
 
+    # получатель сообщения
     recipient = sqlalchemy.Column(sqlalchemy.String, nullable=True)
 
+    # прочитано ли сообщение
     had_seen = sqlalchemy.Column(sqlalchemy.Boolean, default=False)
