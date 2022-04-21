@@ -12,7 +12,7 @@
     <h4 style="position:absolute;left:732px;top:378px;width:200px;height:30px;z-index:5;"> Ник: </h4>
     <input type="text" align="center" id="Editbox1" disabled="disabled"
            style="position:absolute;left:662px;top:448px;width:200px;height:30px;z-index:5;" name="Editbox1"
-           placeholder={{ name }}>
+           placeholder="{{ name }}">
     {% if name_image == None %}
 
     <div id="wb_Image1" style="position:absolute;left:658px;top:122px;width:104px;height:86px;z-index:2;">
@@ -34,7 +34,7 @@
 </form>
 
 <p>
-    <a class="btn btn-primary" style="position:absolute;left:100px;top:28px;height:40px;" href="/">Главная страница</a>
+    <br><br><a class="btn btn-primary" style="position:absolute;left:100px;top:28px;height:40px;" href="/">Главная страница</a>
 </p>
 <h2>id: {{ name_id }}</h2>
 {% if current_user.is_authenticated %}
@@ -45,11 +45,17 @@
 {% if current_user.id == 1 %}
 <p>
     {% if not user.blocked %}
+
     <a class="btn btn-primary" href="/blocked/{{name_id}}"> Заблокировать </a>{% else %}<a class="btn btn-primary"
                                                                                             href="/blocked/{{name_id}}">
     Разблокировать </a>{%endif%}
 
 </p>{% endif %}
 {% endif %}
+{% if user.blocked %}
+<div class="alert alert-danger" role="alert">
+                        <h8>Заблокирован!</h8>
+                      </div>{%endif%}
+<a class="btn btn-primary" href="/all_location/{{name_id}}"> Все города </a>
 
 {% endblock %}

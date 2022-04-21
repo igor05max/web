@@ -5,9 +5,9 @@
 <form method="post" enctype="multipart/form-data" xmlns="http://www.w3.org/1999/html"
       xmlns="http://www.w3.org/1999/html">
 
-<!--<input style="position:absolute;left:32px;top:128px;width:300px;height:40px;z-index:5;" name="input_ww">-->
-<!--<button type="submit" class="btn btn-primary" style="position:absolute;left:360px;top:128px;height:40px;">Поиск</button>-->
-</br></br></br></br></br>
+<input style="position:absolute;left:332px;top:128px;width:700px;height:40px;z-index:5;" name="input_ww">
+<button type="submit" class="btn btn-primary" style="position:absolute;left:1060px;top:128px;height:40px;">Поиск</button>
+</br></br></br></br></br></br></br></br></br>
 {% for elem in chat_list %}
 <table style="text-align: left; width: 211px; height: 104px;" border="0"
 cellpadding="2" cellspacing="2">
@@ -28,7 +28,17 @@ cellpadding="2" cellspacing="2">
     </tr></tbody></table>
     <br><br>
     {% endfor %}
+    {% if message_for_user != '' %}
+    <h2 align="center">{{message_for_user}}</h2>
+    {% endif %}
 
     <a class="btn btn-primary " href="/" style="top:628px;height:40px;bottom:0;position:fixed;">Главная страница</a>
 </form>
+
+{% if current_user.id != 1 %}
+
+<a class="btn btn-primary " href="/profile_/1"
+   style="position:absolute;top:628px;height:40px;left:1242px;bottom:0;position:fixed;">Администратор</a>
+
+{% endif %}
 {% endblock %}

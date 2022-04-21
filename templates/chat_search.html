@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<form method="post" enctype="multipart/form-data">
+<input style="position:absolute;left:332px;top:128px;width:700px;height:40px;z-index:5;" name="input_ww">
+<button type="submit" class="btn btn-primary" style="position:absolute;left:1060px;top:128px;height:40px;">Поиск</button>
+<br><br><br><br><br><br><br><br>
+
+{% for elem in list_answer %}
+<div align="center">
+    <a href="/profile_/{{elem[1]}}">{{elem[0]}}</a><br>
+</div>
+{% endfor %}
+<a class="btn btn-primary " href="/chat/{{current_user.id}}" style="top:628px;height:40px;bottom:0;position:fixed;">Все чаты</a>
+
+{% if current_user.id != 1 %}
+
+<a class="btn btn-primary " href="/profile_/1"
+   style="position:absolute;top:628px;height:40px;left:1242px;bottom:0;position:fixed;">Администратор</a>
+
+{% endif %}
+</form>
+{% endblock %}

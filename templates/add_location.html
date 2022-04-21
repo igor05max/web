@@ -36,6 +36,15 @@
 </datalist>
     <br>
     <br>
+    <p>
+            {{ form.category.label }}<br>
+            {{ form.category(class="form-control") }}<br>
+            {% for error in form.category.errors %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
+            {% endfor %}
+        </p>
         <p>
             {{ form.about.label }}<br>
             {{ form.about(class="form-control") }}<br>

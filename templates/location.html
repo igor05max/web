@@ -67,15 +67,22 @@
     <textarea class="form-control" id="about" rows="4" cols="8" disabled="disabled" name="about"
     >{{location.about}}</textarea>{% endif %}
 </div>
-
+<h7>Просмотров: {{location.count_visits}}</h7>
+<h5> Категория: {{location.category}} </h5>
 <br>
 <br>
 <br>
 <br>
 <hr id="Line1" style="top:273px;width:544px;z-index:5;">
 {% if current_user.is_authenticated %}
-<div class="form-group">
 
+{% if current_user.id == location.creator %}
+
+<a class="btn btn-primary " href="/editing_locations/{{location.id}}"
+   style="position:absolute;top:28px;height:40px;left:242px;bottom:0;">Редактировать</a>
+
+{% endif %}
+<div class="form-group">
 
     <form method="post" enctype="multipart/form-data">
         <textarea class="form-control" id="about2" rows="4" cols="8" name="comment" placeholder="Комментарий..."
@@ -146,6 +153,15 @@
 
 
 {% endfor %}
-{% if current_user.is_authenticated %}<a class="btn btn-info" href="/chat/{{current_user.id}}"
+{% if current_user.is_authenticated %}<a class="{{color}}" href="/chat/{{current_user.id}}"
            style="position:absolute;left:1289px;top:637px;z-index:1;position:fixed;">Чат</a>{% endif %}
+
+
+{% if current_user.is_authenticated %}
+{% if current_user.id == 1 or current_user.id == location.creator %}
+    <a href="/del_location/{{location.id}}" class="btn btn-danger">
+                    Удалить локацию
+                </a>{%endif%}
+{% endif %}
+
 {% endblock %}
