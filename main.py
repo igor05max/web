@@ -16,13 +16,14 @@ from data.image import Image
 from data.comment import Comment
 from data import location_api
 from data.similarity import search
-import json
 from forms.edit_a_comment import EditAComment
 from datetime import datetime
 from data.chat import Chat
 from data.message import Message
 from forms.new_chat import NewChat
 from flask import make_response
+from fuzzywuzzy import process
+import json
 
 
 app = Flask(__name__)
@@ -40,6 +41,7 @@ def main():
     db_sess = db_session.create_session()
     app.register_blueprint(location_api.blueprint)
     user_ = db_sess.query(User).filter(User.id == 1).first()
+    # создание администратора
     if user_ is None:
         user = User()
         user.name = "ADMINISTRATOR"
@@ -52,6 +54,7 @@ def main():
     app.run()
 
 
+# вход в аккаунт
 @app.route('/entrance', methods=['GET', 'POST'])
 def entrance():
     form = EntranceForm()
@@ -71,6 +74,7 @@ def entrance():
     return render_template('entrance.html', title='Авторизация', form=form)
 
 
+# регистрация
 @app.route('/registration', methods=['GET', 'POST'])
 def registration():
     form = RegistrationForm()
@@ -84,6 +88,10 @@ def registration():
             return render_template('registration.html',
                                    form=form,
                                    message="Такой пользователь уже есть")
+        if len(form.name.data) > 30:
+            return render_template('registration.html',
+                                   form=form,
+                                   message="Ник не должен превышать 30 символов")
 
         user = User()
 
@@ -101,6 +109,7 @@ def registration():
     return render_template('registration.html', form=form, title='Регистрация')
 
 
+# главная страница
 @app.route('/', methods=['GET', 'POST'])
 def home_page():
     if current_user.is_authenticated and current_user.blocked:
@@ -121,16 +130,23 @@ def home_page():
             return redirect('/search')
 
 
+# поиск достопримечательности
 @app.route('/search', methods=['GET', 'POST'])
 def search_():
     if current_user.is_authenticated and current_user.blocked:
         return redirect('/logout')
     if request.method == "GET":
+        try:
+            db_sess = db_session.create_session()
+            assert [i for i in db_sess.query(Message).all() if str(current_user.id) == i.recipient and not i.had_seen]
+            color = "btn btn-danger"
+        except (AttributeError, AssertionError):
+            color = "btn btn-info"
         with open('data_file.json', 'r', encoding='utf-8') as f:
             data = json.load(f)
         data_locations = [db_session.create_session().query(Location).filter(Location.id == int(i)).first()
                           for i in [int(elem) for elem in data]]
-        return render_template('home_page.html', data_locations=data_locations)
+        return render_template('home_page.html', data_locations=data_locations, color=color)
     elif request.method == "POST":
         request_text = request.form['input_ww'].strip()
         answer = search(request_text)
@@ -138,6 +154,7 @@ def search_():
             return redirect('/search')
 
 
+# свой профиль
 @app.route('/profile', methods=['GET', 'POST'])
 @login_required
 def profile():
@@ -148,6 +165,7 @@ def profile():
                                name=current_user.name, name_id=current_user.id)
 
 
+# редактирование профиля
 @app.route('/to_change_profile', methods=['GET', 'POST'])
 def to_change_profile():
     if current_user.is_authenticated and current_user.blocked:
@@ -186,14 +204,22 @@ def to_change_profile():
     return render_template('to_change_profile.html', form=form, title="")
 
 
+# просмотр достопримечательности
 @app.route('/location/<int:id_>', methods=['GET', 'POST'])
 def location_id(id_):
     if current_user.is_authenticated and current_user.blocked:
         return redirect('/logout')
     if request.method == 'GET':
+        try:
+            db_sess = db_session.create_session()
+            assert [i for i in db_sess.query(Message).all() if str(current_user.id) == i.recipient and not i.had_seen]
+            color = "btn btn-danger"
+        except (AttributeError, AssertionError):
+            color = "btn btn-info"
         db_sess = db_session.create_session()
         location = db_sess.query(Location).filter(Location.id == id_).first()
-        location.count_visits = str(int(location.count_visits) + 1)
+        if current_user.id != location.creator:
+            location.count_visits = str(int(location.count_visits) + 1)
         db_sess.commit()
         location_list = []
         if location:
@@ -205,7 +231,7 @@ def location_id(id_):
                     if image_:
                         location_list.append("img/" + image_.image)
             return render_template('location.html', location_list=location_list, name=location.name, location=location,
-                                   comment_list=comment_list, creator=location.user.name)
+                                   comment_list=comment_list, creator=location.user.name, color=color)
 
     elif request.method == 'POST':
         text = request.form['comment']
@@ -221,6 +247,7 @@ def location_id(id_):
         return redirect(f'/location/{id_}')
 
 
+# добавление локации
 @app.route('/add_location', methods=['GET', 'POST'])
 @login_required
 def add_location():
@@ -268,6 +295,7 @@ def add_location():
         location.city_id = city.id
         location.creator = current_user.id
         location.about = form.about.data
+        location.category = form.category.data
         db_sess.add(location)
         db_sess.commit()
 
@@ -275,6 +303,85 @@ def add_location():
     return render_template('add_location.html', form=form, entries=data_city)
 
 
+# редактирование локации
+@app.route('/editing_locations/<int:id_location>', methods=['GET', 'POST'])
+@login_required
+def editing_locations(id_location):
+    db_sess = db_session.create_session()
+    location = db_sess.query(Location).filter(Location.id == id_location).first()
+    if not location:
+        return redirect('/')
+    if location.creator != current_user.id:
+        return redirect(f'/location/{id_location}')
+    form = LocationForm()
+    f = open("all_cities.txt", encoding="utf8")
+    data_city = [i.replace("\t", " ").replace("\n", "") for i in f]
+    f.close()
+    if request.method == 'GET':
+        form.name_location.data = location.name
+        form.about.data = location.about
+        form.city.data = location.city.name
+        form.category.data = location.category
+        return render_template('add_location.html', form=form, entries=data_city)
+    elif form.validate_on_submit():
+        number = 0
+        mass = []
+        db_sess = db_session.create_session()
+        true = form.file.data[0].filename
+        if true:
+            for file in form.file.data:
+                number += 1
+                name_file = f'{time.strftime("%Y-%m-%d-%H.%M.%S", time.localtime())}0{current_user.id}_{number}.png'
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], name_file))
+                image = Image()
+                image.image = name_file
+                image.creator = current_user.id
+                db_sess = db_session.create_session()
+                db_sess.add(image)
+                db_sess.commit()
+                mass.append(str(db_sess.query(Image).filter(Image.image == name_file).first().id))
+        city = db_sess.query(City).filter(City.name == form.city.data).first()
+        if form.city.data not in data_city:
+            return render_template('add_location.html',
+                                   message="Неправильный регион",
+                                   entries=data_city,
+                                   form=form)
+        if not city:
+            city = City()
+            city.name = form.city.data
+            city.attractions = ""
+            db_sess = db_session.create_session()
+            db_sess.add(city)
+            db_sess.commit()
+            city = db_sess.query(City).filter(City.name == form.city.data).first()
+        location = db_sess.query(Location).filter(Location.id == id_location).first()
+        location.name = form.name_location.data
+        location.img = ", ".join(mass)
+        location.city_id = city.id
+        location.category = form.category.data
+        location.creator = current_user.id
+        location.about = form.about.data
+        db_sess.commit()
+
+        return redirect(f'/location/{id_location}')
+
+
+# топ 30
+@app.route('/best_locations', methods=['GET', 'POST'])
+def best_locations():
+    try:
+        db_sess = db_session.create_session()
+        assert [i for i in db_sess.query(Message).all() if str(current_user.id) == i.recipient and not i.had_seen]
+        color = "btn btn-danger"
+    except (AttributeError, AssertionError):
+        color = "btn btn-info"
+    db_sess = db_session.create_session()
+    locations = db_sess.query(Location).all()
+    res = sorted(locations, key=lambda x: int(x.count_visits), reverse=True)[:30]
+    return render_template('best_locations.html', res=res, color=color)
+
+
+# чужой профиль
 @app.route('/profile_/<int:id_>', methods=['GET', 'POST'])
 def profile_id(id_):
     if current_user.is_authenticated and current_user.blocked:
@@ -292,16 +399,24 @@ def profile_id(id_):
         pass
 
 
+# все локации города
 @app.route('/city/<int:id_>', methods=['GET', 'POST'])
 def city(id_):
     if current_user.is_authenticated and current_user.blocked:
         return redirect('/logout')
     if request.method == 'GET':
+        try:
+            db_sess = db_session.create_session()
+            assert [i for i in db_sess.query(Message).all() if str(current_user.id) == i.recipient and not i.had_seen]
+            color = "btn btn-danger"
+        except (AttributeError, AssertionError):
+            color = "btn btn-info"
         name = db_session.create_session().query(City).filter(City.id == id_).first().name
         data_locations = db_session.create_session().query(Location).filter(Location.city_id == id_)[::-1]
-        return render_template('city.html', name_city=name, data_locations=data_locations)
+        return render_template('city.html', name_city=name, data_locations=data_locations, color=color)
 
 
+# редактирование комментария
 @app.route('/edit_a_comment/<int:id_>', methods=['GET', 'POST'])
 @login_required
 def edit_a_comment(id_):
@@ -327,6 +442,7 @@ def edit_a_comment(id_):
     return render_template('edit_a_comment.html', form=form)
 
 
+# удаление комментария
 @app.route('/delete_a_comment/<int:id_>/<int:id_2>', methods=['GET', 'POST'])
 @login_required
 def delete_a_comment(id_, id_2):
@@ -352,6 +468,7 @@ def delete_a_comment(id_, id_2):
         return redirect('/')
 
 
+# все чаты
 @app.route('/chat/<int:id_>', methods=['GET', 'POST'])
 @login_required
 def chat(id_):
@@ -373,13 +490,56 @@ def chat(id_):
                 chat_list.append([i, user,
                                   db_sess.query(Message).filter(Message.id ==
                                                                 int(i.list_messages.split(", ")[-1])).first()])
+
                 chat_list = sorted(chat_list, key=lambda x: x[2].modified_date, reverse=True)
-
-        return render_template('chat.html', chat_list=chat_list)
+        message_for_user = ''
+        if not chat_list:
+            message_for_user = 'У Вас пока нет сообщений'
+        return render_template('chat.html', chat_list=chat_list, message_for_user=message_for_user)
     elif request.method == 'POST':
-        pass
+        request_text = request.form['input_ww'].strip()
+        list_answer = []
+        db_sess = db_session.create_session()
+        list_users = db_sess.query(User).filter(User.id != current_user.id)
+        for user in list_users:
+            list_answer.append(f'{user.name} {user.id}')
+        answers = process.extract(request_text, list_answer, limit=10)
+        out = {}
+        for ans in answers:
+            out[int(ans[0].split()[-1])] = ans[0]
+        with open("data_file_user.json", "w", encoding="utf8") as write_file:
+            json.dump(out, write_file)
+        return redirect(f'/chat_search/{current_user.id}')
 
 
+# поиск пользователя
+@app.route('/chat_search/<int:id_user>',  methods=['GET', 'POST'])
+@login_required
+def chat_search(id_user):
+    if current_user.id != id_user:
+        return redirect(f'/chat_search/{current_user.id}')
+    if request.method == "GET":
+        with open('data_file_user.json', 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        list_answer = [(data[elem], int(elem)) for elem in data]
+        return render_template('chat_search.html', list_answer=list_answer)
+    elif request.method == 'POST':
+        request_text = request.form['input_ww'].strip()
+        list_answer = []
+        db_sess = db_session.create_session()
+        list_users = db_sess.query(User).filter(User.id != current_user.id)
+        for user in list_users:
+            list_answer.append(f'{user.name} {user.id}')
+        answers = process.extract(request_text, list_answer, limit=10)
+        out = {}
+        for ans in answers:
+            out[int(ans[0].split()[-1])] = ans[0]
+        with open("data_file_user.json", "w", encoding="utf8") as write_file:
+            json.dump(out, write_file)
+        return redirect(f'/chat_search/{current_user.id}')
+
+
+# чат
 @app.route('/chat_/<int:id_>', methods=['GET', 'POST'])
 @login_required
 def chat_id(id_):
@@ -425,6 +585,7 @@ def chat_id(id_):
         return redirect(f'/chat_/{id_}')
 
 
+# создание нового чата
 @app.route('/new_chat/<int:id_>', methods=['GET', 'POST'])
 @login_required
 def new_chat(id_):
@@ -463,6 +624,7 @@ def new_chat(id_):
             return redirect(f'/chat_/{chat_not_new.id}')
 
 
+# удаление сообщения в чате
 @app.route('/delete_a_message/<int:message_id>/<int:current_user_id>/<int:chat_id>')
 @login_required
 def delete_a_message(message_id, current_user_id, chat_id):
@@ -480,6 +642,7 @@ def delete_a_message(message_id, current_user_id, chat_id):
         return redirect(f'/chat_/{chat_id}')
 
 
+# блокировка и разблокировка пользователя
 @app.route('/blocked/<int:id_user>')
 @login_required
 def blocked(id_user):
@@ -490,6 +653,37 @@ def blocked(id_user):
             user.blocked = not user.blocked
             db_sess.commit()
         return redirect(f'/profile_/{id_user}')
+
+
+# удаление локации
+@app.route('/del_location/<int:id_location>')
+@login_required
+def del_location(id_location):
+    db_sess = db_session.create_session()
+    location = db_sess.query(Location).filter(Location.id == id_location).first()
+    if not location:
+        return redirect('/')
+    if current_user.id not in {1, location.creator}:
+        return redirect('/')
+    db_sess.delete(location)
+    db_sess.commit()
+    return redirect('/')
+
+
+# все локации, созданные пользователем
+@app.route('/all_location/<int:id_user>')
+def all_city(id_user):
+    db_sess = db_session.create_session()
+    try:
+        db_sess = db_session.create_session()
+        assert [i for i in db_sess.query(Message).all() if str(current_user.id) == i.recipient and not i.had_seen]
+        color = "btn btn-danger"
+    except (AttributeError, AssertionError):
+        color = "btn btn-info"
+    locations = db_sess.query(Location).filter(Location.creator == id_user)
+    locations = sorted(locations, key=lambda x: int(x.count_visits), reverse=True)
+    return render_template('all_city.html', user=db_sess.query(User).filter(User.id == id_user).first(),
+                           locations=locations, coloro=color)
 
 
 @login_manager.user_loader
