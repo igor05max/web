@@ -30,6 +30,7 @@ class Comment(SqlAlchemyBase, UserMixin):
                                 sqlalchemy.ForeignKey("users.id"))
     user = orm.relation('User')
 
+    # комментарий к данной локации
     location_id = sqlalchemy.Column(sqlalchemy.Integer,
                                 sqlalchemy.ForeignKey("locations.id"))
     location = orm.relation('Location')
