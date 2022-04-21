@@ -4,6 +4,7 @@ from wtforms.fields import EmailField
 from wtforms.validators import DataRequired
 
 
+# редактирование профиля
 class To_changeForm(FlaskForm):
     email = EmailField('E-mail', validators=[DataRequired()])
     name = StringField('Ник пользователя', validators=[DataRequired()])
