@@ -683,7 +683,7 @@ def all_city(id_user):
     locations = db_sess.query(Location).filter(Location.creator == id_user)
     locations = sorted(locations, key=lambda x: int(x.count_visits), reverse=True)
     return render_template('all_city.html', user=db_sess.query(User).filter(User.id == id_user).first(),
-                           locations=locations, coloro=color)
+                           locations=locations, color=color)
 
 
 @login_manager.user_loader
